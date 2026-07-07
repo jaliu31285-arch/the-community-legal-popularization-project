@@ -18,8 +18,8 @@ export const useSiteStyle = create<SiteStyleState>((set) => ({
   fetchStyle: async () => {
     try {
       const settings = await api.getSiteSettings();
-      const siteStyle = (settings as any)?.site_style?.setting_value || 'style-a';
-      const styleLocked = (settings as any)?.style_locked?.setting_value || '0';
+      const siteStyle = (settings as any)?.site_style || 'style-a';
+      const styleLocked = (settings as any)?.style_locked || '0';
       set({ style: siteStyle as SiteStyle, locked: styleLocked === '1', loading: false });
     } catch {
       set({ loading: false });
