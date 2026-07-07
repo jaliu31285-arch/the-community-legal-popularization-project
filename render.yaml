@@ -3,7 +3,7 @@ services:
     name: farunqingmiao
     env: node
     plan: free
-    buildCommand: npm install && npm run build && npm run server:build
+    buildCommand: npm install && npm run build
     startCommand: npm run server:start
     envVars:
       - key: NODE_ENV
@@ -11,6 +11,9 @@ services:
       - key: PORT
         value: 10000
     disk:
-      name: data
-      mountPath: ./data
-      sizeGB: 1
+      - name: data
+        mountPath: /opt/render/project/src/data
+        sizeGB: 1
+      - name: uploads
+        mountPath: /opt/render/project/src/uploads
+        sizeGB: 1

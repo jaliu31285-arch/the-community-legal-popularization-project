@@ -11,7 +11,7 @@
     "check": "tsc -b --noEmit",
     "server": "tsx watch server/index.ts",
     "server:build": "tsc --project tsconfig.server.json",
-    "server:start": "node dist/index.js",
+    "server:start": "tsx server/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
