@@ -491,6 +491,8 @@ if (settingsCount.count === 0) {
   insertSetting.run('banner_subtitle', '未成年人网络安全普法平台', 'text', '首页大Banner副标题');
   insertSetting.run('banner_description', '守护青少年健康成长，共筑清朗网络空间', 'text', '首页大Banner描述');
   insertSetting.run('banner_image', '', 'text', '首页大Banner背景图');
+  insertSetting.run('site_style', 'style-a', 'text', '网站风格：style-a公益组织风 / style-b政务教育风 / style-c青春校园风');
+  insertSetting.run('style_locked', '0', 'text', '风格锁定：0未锁定 / 1已锁定');
   console.log('站点设置已初始化');
 }
 

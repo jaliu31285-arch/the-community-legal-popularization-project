@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Loader2, Settings, Upload, ExternalLink, Info, MapPin, Image, FileText, Phone, Mail, MapPinIcon, Shield, Type, Palette } from 'lucide-react';
+import { Save, Loader2, Settings, Upload, ExternalLink, Info, MapPin, Image, FileText, Phone, Mail, MapPinIcon, Shield, Type, Palette, Eye, Lock } from 'lucide-react';
 import { api, uploadFile } from '@/services/api';
 
 interface SettingItem {
@@ -276,6 +276,122 @@ export default function SiteSettingsAdmin() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 网站风格选择 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+              <Palette className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-slate-800">网站风格</h2>
+              <p className="text-sm text-slate-500">选择一套网站风格，不同风格的布局思路完全不同</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 space-y-6">
+          {formData.style_locked === '1' ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">风格已锁定</h3>
+              <p className="text-sm text-slate-500 mb-4">当前风格已被锁定，如需切换请先解锁</p>
+              <button
+                onClick={() => setFormData({ ...formData, style_locked: '0' })}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+              >
+                解锁风格
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  {
+                    key: 'style-a',
+                    name: '公益组织风',
+                    desc: '左右分栏布局，绿色主色调，温暖亲切，适合社区普法、NGO项目',
+                    colors: 'from-emerald-500 to-green-500',
+                    icon: '🌿',
+                  },
+                  {
+                    key: 'style-b',
+                    name: '政务教育风',
+                    desc: '单栏通栏布局，蓝红配色，正式大气，模仿政府教育类网站',
+                    colors: 'from-blue-600 to-indigo-600',
+                    icon: '🏛️',
+                  },
+                  {
+                    key: 'style-c',
+                    name: '青春校园风',
+                    desc: '卡片瀑布流布局，多彩渐变，活泼动感，适合学生社团、青年活动',
+                    colors: 'from-orange-400 via-pink-400 to-purple-500',
+                    icon: '🎨',
+                  },
+                ].map((style) => (
+                  <button
+                    key={style.key}
+                    onClick={() => setFormData({ ...formData, site_style: style.key })}
+                    className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                      formData.site_style === style.key
+                        ? 'border-purple-500 bg-purple-50 shadow-lg shadow-purple-100'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    {formData.site_style === style.key && (
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${style.colors} flex items-center justify-center text-2xl mb-3`}>
+                      {style.icon}
+                    </div>
+                    <h3 className="font-semibold text-slate-800">{style.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">{style.desc}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <Eye className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-800">预览提示</p>
+                  <p className="text-sm text-amber-700 mt-0.5">
+                    切换风格后，请打开前端页面查看效果。不同风格的布局、导航、配色完全不同。
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* 锁定机制 */}
+          <div className="border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Lock className={`w-5 h-5 ${formData.style_locked === '1' ? 'text-red-500' : 'text-slate-400'}`} />
+                <div>
+                  <p className="text-sm font-medium text-slate-700">锁定当前风格</p>
+                  <p className="text-xs text-slate-500">锁定后隐藏风格选项，只保留当前版本</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setFormData({ ...formData, style_locked: formData.style_locked === '1' ? '0' : '1' })}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  formData.style_locked === '1' ? 'bg-red-500' : 'bg-slate-300'
+                }`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                  formData.style_locked === '1' ? 'translate-x-6' : 'translate-x-0.5'
+                }`} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-end">

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSiteStyle } from '@/hooks/useSiteStyle';
+import HomeStyleB from './home/HomeStyleB';
+import HomeStyleC from './home/HomeStyleC';
 import {
   ChevronRight,
   ChevronLeft,
@@ -59,6 +62,7 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function Home() {
+  const { style, loading: styleLoading, fetchStyle } = useSiteStyle();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [siteSettings, setSiteSettings] = useState<Record<string, any>>({});
   const [newsData, setNewsData] = useState<any[]>(defaultNews);
@@ -68,6 +72,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchStyle();
     const fetchData = async () => {
       try {
         const [settings, news, anns, links, stats] = await Promise.all([
@@ -118,6 +123,12 @@ export default function Home() {
       bg: 'from-amber-500 via-orange-500 to-rose-500',
     },
   ];
+
+  // 根据风格渲染不同首页
+  if (style === 'style-b') return <HomeStyleB />;
+  if (style === 'style-c') return <HomeStyleC />;
+
+  // 默认 Style A - 公益组织风
 
   return (
     <div className="min-h-screen bg-slate-50">
