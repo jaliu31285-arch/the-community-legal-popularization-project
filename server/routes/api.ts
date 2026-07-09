@@ -1734,7 +1734,7 @@ router.post('/activity-reviews', authMiddleware, (req: AuthRequest, res: Respons
     INSERT INTO activity_reviews (date, day, title, description, sort_order, is_active)
     VALUES (?, ?, ?, ?, ?, ?)
   `).run(date, day || 1, title || '', description || '', sort_order || 0, is_active ?? 1);
-  const review = db.prepare('SELECT * FROM activity_reviews WHERE id = ?').get(result.lastInsertRowid);
+  const review = db.prepare('SELECT * FROM activity_reviews WHERE id = ?').get(result.lastInsertRowid) as Record<string, any>;
   res.status(201).json({ ...review, items: [] });
 });
 
@@ -1755,7 +1755,7 @@ router.put('/activity-reviews/:id', authMiddleware, (req: AuthRequest, res: Resp
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `).run(date ?? null, day ?? null, title ?? null, description ?? null, sort_order ?? null, is_active ?? null, req.params.id);
-  const review = db.prepare('SELECT * FROM activity_reviews WHERE id = ?').get(req.params.id);
+  const review = db.prepare('SELECT * FROM activity_reviews WHERE id = ?').get(req.params.id) as Record<string, any>;
   const items = db.prepare('SELECT * FROM activity_review_items WHERE review_id = ? AND is_active = 1 ORDER BY sort_order ASC').all(req.params.id);
   res.json({ ...review, items });
 });
