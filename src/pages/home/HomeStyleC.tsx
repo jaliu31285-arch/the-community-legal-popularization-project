@@ -4,9 +4,9 @@ import { ChevronRight, ChevronLeft, Calendar, ArrowRight, Phone, Mail, MapPin, S
 import { api } from '@/services/api';
 
 const defaultTopics = [
-  { id: 1, title: '拒绝网络暴力', description: '认识网络暴力的危害', icon: 'AlertTriangle', color: 'from-pink-500 to-rose-500', route: '/cyberbullying' },
-  { id: 2, title: '谨防网络诈骗', description: '识破诈骗套路', icon: 'Shield', color: 'from-orange-500 to-amber-500', route: '/fraud' },
-  { id: 3, title: '理性消费成长', description: '远离消费陷阱', icon: 'ShoppingBag', color: 'from-purple-500 to-violet-500', route: '/consumption' },
+  { id: 1, title: '校园欺凌与网络暴力', description: '认识校园欺凌与网络暴力的危害', icon: 'AlertTriangle', color: 'from-pink-500 to-rose-500', route: '/cyberbullying' },
+  { id: 2, title: '网络诈骗与网络造谣', description: '识破诈骗套路，远离网络造谣', icon: 'Shield', color: 'from-orange-500 to-amber-500', route: '/fraud' },
+  { id: 3, title: '不良行为矫治与权益保护', description: '认清不良行为，保护自身权益', icon: 'ShoppingBag', color: 'from-purple-500 to-violet-500', route: '/consumption' },
 ];
 
 const defaultNews = [
@@ -67,9 +67,9 @@ export default function HomeStyleC() {
   ];
 
   const bannerSlides = [
-    { title: '法润青苗', subtitle: '一起守护少年的你', emoji: '🌱' },
-    { title: '拒绝网络暴力', subtitle: '让网络充满阳光', emoji: '🛡️' },
-    { title: '谨防网络诈骗', subtitle: '做个聪明的冲浪人', emoji: '🔍' },
+    { title: '法治护航 少年成长', subtitle: '一起守护少年的你', emoji: '🌱' },
+    { title: '抵制校园欺凌与网络暴力', subtitle: '让网络充满阳光', emoji: '🛡️' },
+    { title: '防范网络诈骗与造谣', subtitle: '做个聪明的冲浪人', emoji: '🔍' },
   ];
 
   return (

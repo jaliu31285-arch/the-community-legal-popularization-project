@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useSiteStyle } from '@/hooks/useSiteStyle';
 import HomeStyleB from './home/HomeStyleB';
 import HomeStyleC from './home/HomeStyleC';
-import PageBlockRenderer from '@/components/blocks/PageBlockRenderer';
 import {
   ChevronRight,
   ChevronLeft,
@@ -22,9 +21,9 @@ import {
 import { api } from '@/services/api';
 
 const defaultTopics = [
-  { id: 1, title: '拒绝网络暴力', description: '认识网络暴力的危害，学会保护自己', icon: 'AlertTriangle', color: 'green', route: '/cyberbullying', image_url: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cyber%20bullying%20prevention%20poster%20with%20shield%20and%20digital%20elements%20blue%20green%20gradient%20style&image_size=landscape_4_3' },
-  { id: 2, title: '谨防网络诈骗', description: '识破诈骗套路，守护财产安全', icon: 'Shield', color: 'warm', route: '/fraud', image_url: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=fraud%20prevention%20poster%20with%20lock%20and%20warning%20symbols%20orange%20yellow%20gradient%20style&image_size=landscape_4_3' },
-  { id: 3, title: '理性消费成长', description: '培养正确消费观，远离消费陷阱', icon: 'ShoppingBag', color: 'green', route: '/consumption', image_url: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=smart%20consumer%20education%20poster%20with%20shopping%20bag%20and%20coins%20purple%20pink%20gradient%20style&image_size=landscape_4_3' },
+  { id: 1, title: '校园欺凌与网络暴力', description: '认识校园欺凌与网络暴力，学会自我保护', icon: 'AlertTriangle', color: 'green', route: '/cyberbullying', image_url: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=anti%20bullying%20campus%20safety%20poster%20with%20shield%20and%20students%20blue%20green%20gradient%20style&image_size=landscape_4_3' },
+  { id: 2, title: '网络诈骗防范', description: '识破诈骗套路，守护财产安全', icon: 'Shield', color: 'warm', route: '/fraud', image_url: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=fraud%20prevention%20poster%20with%20lock%20and%20warning%20symbols%20orange%20yellow%20gradient%20style&image_size=landscape_4_3' },
+  { id: 3, title: '不良行为矫治与权益保护', description: '认清不良行为危害，掌握权益保护技巧', icon: 'Scale', color: 'green', route: '/consumption', image_url: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=juvenile%20rights%20protection%20legal%20education%20poster%20with%20scale%20and%20shield%20purple%20blue%20gradient%20style&image_size=landscape_4_3' },
 ];
 
 const defaultNews = [
@@ -70,27 +69,24 @@ export default function Home() {
   const [announcements, setAnnouncements] = useState<any[]>(defaultAnnouncements);
   const [quickLinks, setQuickLinks] = useState<any[]>(defaultQuickLinks);
   const [statsData, setStatsData] = useState<any[]>([]);
-  const [pageBlocks, setPageBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStyle();
     const fetchData = async () => {
       try {
-        const [settings, news, anns, links, stats, blocks] = await Promise.all([
+        const [settings, news, anns, links, stats] = await Promise.all([
           api.getSiteSettings(),
           api.getNews(),
           api.getAnnouncements(6),
           api.getQuickLinks(),
           api.getHomeStats(),
-          api.getPageBlocks('home'),
         ]);
         setSiteSettings(settings);
         setNewsData(news.slice(0, 6) || defaultNews);
         setAnnouncements(anns.length > 0 ? anns : defaultAnnouncements);
         setQuickLinks(links.length > 0 ? links : defaultQuickLinks);
         setStatsData(stats || []);
-        setPageBlocks(blocks || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
@@ -132,16 +128,7 @@ export default function Home() {
   if (style === 'style-b') return <HomeStyleB />;
   if (style === 'style-c') return <HomeStyleC />;
 
-  // 如果有动态区块数据，优先使用动态区块渲染
-  if (pageBlocks.length > 0) {
-    return (
-      <div className="min-h-screen bg-white">
-        {pageBlocks.map((block) => (
-          <PageBlockRenderer key={block.id} block={block} />
-        ))}
-      </div>
-    );
-  }
+  
 
   // 默认 Style A - 公益组织风
 

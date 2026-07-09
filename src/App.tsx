@@ -14,7 +14,6 @@ import AnnouncementDetail from "@/pages/AnnouncementDetail";
 import ActivityReview from "@/pages/ActivityReview";
 import StudentWorks from "@/pages/StudentWorks";
 import PromiseWall from "@/pages/PromiseWall";
-import NotFound from "@/pages/NotFound";
 import AdminLogin from "@/pages/admin/Login";
 import AdminLayout from "@/pages/admin/Layout";
 import Dashboard from "@/pages/admin/Dashboard";
@@ -62,13 +61,12 @@ export default function App() {
                   <Route path="/fraud" element={<Fraud />} />
                   <Route path="/consumption" element={<Consumption />} />
                   <Route path="/activities" element={<Activities />} />
-                  <Route path="/activity-review" element={<ActivityReview />} />
-                  <Route path="/student-works" element={<StudentWorks />} />
-                  <Route path="/promise-wall" element={<PromiseWall />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/achievements" element={<Achievements />} />
                   <Route path="/about" element={<About />} />
-                  <Route path="*" element={<NotFound />} />
+                  <Route path="/activity-review" element={<ActivityReview />} />
+                  <Route path="/student-works" element={<StudentWorks />} />
+                  <Route path="/promise-wall" element={<PromiseWall />} />
                 </Routes>
               </main>
               <Footer />

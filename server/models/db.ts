@@ -513,9 +513,9 @@ if (navCount.count === 0) {
     VALUES (?, ?, ?, ?)
   `);
   insertNav.run('首页', '/', 0, 1);
-  insertNav.run('网络暴力专题', '/cyberbullying', 0, 2);
-  insertNav.run('网络诈骗专题', '/fraud', 0, 3);
-  insertNav.run('消费诱导专题', '/consumption', 0, 4);
+  insertNav.run('校园欺凌与网络暴力', '/cyberbullying', 0, 2);
+  insertNav.run('网络诈骗与网络造谣', '/fraud', 0, 3);
+  insertNav.run('不良行为矫治与权益保护', '/consumption', 0, 4);
   insertNav.run('活动回顾', '/activities', 0, 5);
   insertNav.run('学习资源库', '/resources', 0, 6);
   insertNav.run('项目成果展示', '/achievements', 0, 7);
@@ -560,9 +560,9 @@ if (footerCount.count === 0) {
   `);
   insertFooter.run('快速导航', 'links', JSON.stringify([
     { label: '首页', url: '/' },
-    { label: '网络暴力专题', url: '/cyberbullying' },
-    { label: '网络诈骗专题', url: '/fraud' },
-    { label: '消费诱导专题', url: '/consumption' },
+    { label: '校园欺凌与网络暴力', url: '/cyberbullying' },
+    { label: '网络诈骗与网络造谣', url: '/fraud' },
+    { label: '不良行为矫治与权益保护', url: '/consumption' },
     { label: '活动回顾', url: '/activities' },
   ]), 1);
   insertFooter.run('更多栏目', 'links', JSON.stringify([
@@ -627,6 +627,91 @@ try {
   db.prepare('ALTER TABLE page_blocks ADD COLUMN layout TEXT DEFAULT \'default\'').run();
 } catch (e) {}
 
+// 活动回顾表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS activity_reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    day INTEGER DEFAULT 1,
+    title TEXT,
+    description TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 活动回顾内容表（图文视频）
+db.exec(`
+  CREATE TABLE IF NOT EXISTS activity_review_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    review_id INTEGER NOT NULL,
+    item_type TEXT NOT NULL DEFAULT 'text',
+    title TEXT,
+    content TEXT,
+    image_url TEXT,
+    video_url TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (review_id) REFERENCES activity_reviews(id) ON DELETE CASCADE
+  )
+`);
+
+// 学生作品表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS student_works (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT DEFAULT 'poster',
+    title TEXT,
+    author TEXT,
+    description TEXT,
+    content TEXT,
+    image_url TEXT,
+    video_url TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+try {
+  db.prepare('ALTER TABLE student_works ADD COLUMN content TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE student_works ADD COLUMN video_url TEXT').run();
+} catch (e) {}
+
+// 承诺墙签名单
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promise_wall_signatures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    school TEXT,
+    grade TEXT,
+    signature_image TEXT,
+    signature_data TEXT,
+    message TEXT,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+try {
+  db.prepare('ALTER TABLE promise_wall_signatures ADD COLUMN school TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE promise_wall_signatures ADD COLUMN grade TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE promise_wall_signatures ADD COLUMN signature_image TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE promise_wall_signatures ADD COLUMN signature_data TEXT').run();
+} catch (e) {}
+
 // 操作日志表（用于撤回功能）
 db.exec(`
   CREATE TABLE IF NOT EXISTS change_logs (
@@ -640,6 +725,121 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+// 迁移：更新导航菜单中的专题名称
+try {
+  db.prepare("UPDATE nav_items SET label = '校园欺凌与网络暴力' WHERE path = '/cyberbullying'").run();
+  db.prepare("UPDATE nav_items SET label = '网络诈骗防范' WHERE path = '/fraud'").run();
+  db.prepare("UPDATE nav_items SET label = '不良行为矫治与权益保护' WHERE path = '/consumption'").run();
+} catch (e) {}
+
+// 迁移：更新页脚链接中的专题名称
+try {
+  const updateFooterLinks = db.prepare("SELECT * FROM footer_sections WHERE title = '快速导航'");
+  const footer = updateFooterLinks.get() as any;
+  if (footer && footer.content) {
+    let content = JSON.parse(footer.content);
+    content = content.map((item: any) => {
+      if (item.url === '/cyberbullying') item.label = '校园欺凌与网络暴力';
+      if (item.url === '/fraud') item.label = '网络诈骗防范';
+      if (item.url === '/consumption') item.label = '不良行为矫治与权益保护';
+      return item;
+    });
+    db.prepare("UPDATE footer_sections SET content = ? WHERE title = '快速导航'").run(JSON.stringify(content));
+  }
+} catch (e) {}
+
+// 迁移：更新专题分类名称
+try {
+  db.prepare("UPDATE topics SET category = 'campus_bullying' WHERE category = 'cyberbullying'").run();
+  db.prepare("UPDATE topics SET category = 'fraud_prevention' WHERE category = 'fraud'").run();
+  db.prepare("UPDATE topics SET category = 'behavior_correction' WHERE category = 'consumption'").run();
+} catch (e) {}
+
+// 迁移：更新导航菜单中的专题名称
+try {
+  db.prepare("UPDATE nav_items SET label = '校园欺凌与网络暴力' WHERE path = '/cyberbullying'").run();
+  db.prepare("UPDATE nav_items SET label = '网络诈骗与网络造谣' WHERE path = '/fraud'").run();
+  db.prepare("UPDATE nav_items SET label = '不良行为矫治与权益保护' WHERE path = '/consumption'").run();
+} catch (e) {}
+
+// 迁移：更新页脚链接中的专题名称
+try {
+  const updateFooterLinks = db.prepare("SELECT * FROM footer_sections WHERE title = '快速导航'");
+  const footer = updateFooterLinks.get() as any;
+  if (footer && footer.content) {
+    let content = JSON.parse(footer.content);
+    content = content.map((item: any) => {
+      if (item.url === '/cyberbullying') item.label = '校园欺凌与网络暴力';
+      if (item.url === '/fraud') item.label = '网络诈骗与网络造谣';
+      if (item.url === '/consumption') item.label = '不良行为矫治与权益保护';
+      return item;
+    });
+    db.prepare("UPDATE footer_sections SET content = ? WHERE title = '快速导航'").run(JSON.stringify(content));
+  }
+} catch (e) {}
+
+// 迁移：更新轮播图标题
+try {
+  db.prepare("UPDATE banners SET title = '抵制校园欺凌与网络暴力' WHERE title = '拒绝网络暴力'").run();
+  db.prepare("UPDATE banners SET title = '防范网络诈骗' WHERE title = '谨防网络诈骗'").run();
+} catch (e) {}
+
+// 初始化活动回顾数据
+const activityReviewsCount = db.prepare('SELECT COUNT(*) as count FROM activity_reviews').get() as { count: number };
+if (activityReviewsCount.count === 0) {
+  const insertReview = db.prepare(`
+    INSERT INTO activity_reviews (date, day, title, description, sort_order)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  insertReview.run('2026-07-20', 1, 'Day 1 - 检察法院实景研学', '走进检察院、法院开展实景研学，活动聚焦青少年高频面临的校园欺凌、网络诈骗、网络造谣、不良行为矫治、权益自我保护等成长风险场景', 1);
+  insertReview.run('2026-07-21', 2, 'Day 2 - 社区法治思维转化', '在枫树社区开展基础法治思维转化，依托案例拆解、角色扮演等趣味形式，帮助青少年认清各类违法风险的危害与后果', 2);
+  console.log('活动回顾数据已初始化');
+
+  const insertReviewItem = db.prepare(`
+    INSERT INTO activity_review_items (review_id, item_type, title, content, image_url, video_url, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  insertReviewItem.run(1, 'text', '开营仪式', '人大代表联动未检职能社区青少年法治教育主题营会正式开营！法律领域人大代表、街道人大工委、街道司法所、社区工作人员及普法志愿者共同参与，为青少年开启两天沉浸式法治学习之旅。', '', '', 0);
+  insertReviewItem.run(1, 'text', '上午：走进检察院', '学员们参观了检察院的办案工作区，了解检察机关的职能和未成年人检察工作的特点。检察官为大家讲解了校园欺凌的法律界定和处理流程，深入剖析了网络造谣的法律后果。通过真实案例展示，让同学们直观感受法律的威严和未成年人保护的重要性。', '', '', 1);
+  insertReviewItem.run(1, 'text', '中午：法治午餐会', '与检察官共进午餐，自由交流法治学习心得，了解检察官的日常工作，感受司法工作者的责任与担当。', '', '', 2);
+  insertReviewItem.run(1, 'text', '下午：法院旁听', '学员们走进法院，旁听了一起未成年人案件的审理，直观感受法庭的庄严和法律的威严。法官为大家讲解了庭审程序和相关法律知识，特别强调了不良行为矫治和权益自我保护的重要性。同学们还参观了法院的文化展厅，了解法治文化建设成果。', '', '', 3);
+  insertReviewItem.run(1, 'text', '晚间：法治电影夜', '组织观看法治教育电影，开展观影分享会，让同学们在轻松愉快的氛围中进一步加深对法治的理解和认识。', '', '', 4);
+  insertReviewItem.run(2, 'text', '上午：案例拆解与角色扮演', '通过案例分析和角色扮演，学员们深入理解了各类违法风险的危害与后果，掌握了基础的自我保护技巧。模拟校园欺凌、网络诈骗等场景，让同学们身临其境感受受害者的处境，学习正确的应对方法。', '', '', 1);
+  insertReviewItem.run(2, 'text', '上午：法治情景绘制', '同学们分组进行法治情景绘制创作，将学到的法律知识转化为生动的绘画作品，通过艺术形式表达对法治的理解和感悟。', '', '', 2);
+  insertReviewItem.run(2, 'text', '中午：学法心得分享', '学员们分享两天来的学习感悟，交流学法心得，互相鼓励，共同成长。', '', '', 3);
+  insertReviewItem.run(2, 'text', '下午：结营仪式', '邀请法律领域人大代表现场观摩研学成果，通过青少年法治情景绘制展示、学法心得分享等形式展示学习成效，并颁发结业证书，激励青少年主动提升法治素养。人大代表对本次活动给予高度评价，并寄语青少年要树立法治观念，学会自我保护。', '', '', 4);
+  console.log('活动回顾内容数据已初始化');
+}
+
+// 初始化学生作品数据
+const studentWorksCount = db.prepare('SELECT COUNT(*) as count FROM student_works').get() as { count: number };
+if (studentWorksCount.count === 0) {
+  const insertWork = db.prepare(`
+    INSERT INTO student_works (category, title, author, description, content, image_url, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  insertWork.run('poster', '法治护航 少年成长', '李明', '法治主题海报设计作品', '', '', 1);
+  insertWork.run('poster', '拒绝校园欺凌', '王小红', '反校园欺凌宣传海报', '', '', 2);
+  insertWork.run('card', '友善评论爱心卡', '张小明', '友善网络评论爱心卡设计', '', '', 3);
+  insertWork.run('essay', '我的学法心得', '刘芳', '参加法治营会后的心得体会', '通过这次法治营会，我学到了很多关于校园欺凌、网络诈骗和自我保护的知识。以前我对这些问题不太了解，现在我知道了如何识别和应对这些风险。我会把学到的知识分享给我的同学们，一起营造一个安全、友善的学习环境。', '', 4);
+  insertWork.run('poster', '网络安全我守护', '陈静', '网络安全主题海报', '', '', 5);
+  console.log('学生作品数据已初始化');
+}
+
+// 初始化承诺墙签名数据
+const signaturesCount = db.prepare('SELECT COUNT(*) as count FROM promise_wall_signatures').get() as { count: number };
+if (signaturesCount.count === 0) {
+  const insertSignature = db.prepare(`
+    INSERT INTO promise_wall_signatures (name, school, grade, message)
+    VALUES (?, ?, ?, ?)
+  `);
+  insertSignature.run('李明', '枫树小学', '六年级', '我承诺：不参与校园欺凌，不传播网络谣言，做一个遵纪守法的好少年！');
+  insertSignature.run('王小红', '枫树小学', '五年级', '我承诺：抵制网络暴力，友善待人，共同维护清朗网络空间！');
+  insertSignature.run('张小明', '枫树中学', '初一', '我承诺：提高防骗意识，不轻易相信陌生信息，保护自己和家人的财产安全！');
+  insertSignature.run('刘芳', '枫树中学', '初二', '我承诺：遵守法律法规，学会自我保护，健康快乐成长！');
+  console.log('承诺墙签名数据已初始化');
+}
 
 // 初始化首页动态区块（法治营会主题）
 const pageBlocksCount = db.prepare('SELECT COUNT(*) as count FROM page_blocks').get() as { count: number };
@@ -733,138 +933,6 @@ if (pageBlocksCount.count === 0) {
   );
 
   console.log('首页动态区块已初始化');
-}
-
-// 活动回顾 - 日期表
-db.exec(`
-  CREATE TABLE IF NOT EXISTS activity_review_days (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    sort_order INTEGER DEFAULT 0,
-    is_active INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// 活动回顾 - 时间点表
-db.exec(`
-  CREATE TABLE IF NOT EXISTS activity_review_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    day_id INTEGER NOT NULL,
-    time TEXT NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT,
-    images TEXT,
-    video_url TEXT,
-    sort_order INTEGER DEFAULT 0,
-    is_active INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (day_id) REFERENCES activity_review_days(id) ON DELETE CASCADE
-  )
-`);
-
-// 活动回顾开关设置
-db.exec(`
-  CREATE TABLE IF NOT EXISTS activity_review_settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled INTEGER DEFAULT 1,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// 学生作品表
-db.exec(`
-  CREATE TABLE IF NOT EXISTS student_works (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    category TEXT DEFAULT '其他',
-    author TEXT,
-    description TEXT,
-    image_url TEXT,
-    content_text TEXT,
-    sort_order INTEGER DEFAULT 0,
-    is_active INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// 学生作品开关设置
-db.exec(`
-  CREATE TABLE IF NOT EXISTS student_works_settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled INTEGER DEFAULT 1,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// 承诺墙签名表
-db.exec(`
-  CREATE TABLE IF NOT EXISTS promise_wall_signatures (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    signature_type TEXT DEFAULT 'text',
-    signature_image TEXT,
-    message TEXT,
-    sort_order INTEGER DEFAULT 0,
-    is_active INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// 承诺墙开关设置
-db.exec(`
-  CREATE TABLE IF NOT EXISTS promise_wall_settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    enabled INTEGER DEFAULT 1,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
-`);
-
-// 初始化活动回顾数据
-const reviewDaysCount = db.prepare('SELECT COUNT(*) as count FROM activity_review_days').get() as { count: number };
-if (reviewDaysCount.count === 0) {
-  const insertDay = db.prepare(`
-    INSERT INTO activity_review_days (date, title, description, sort_order)
-    VALUES (?, ?, ?, ?)
-  `);
-  const insertPoint = db.prepare(`
-    INSERT INTO activity_review_points (day_id, time, title, content, images, video_url, sort_order)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const day1Id = insertDay.run(
-    '2026-07-20',
-    '首日：实景研学',
-    '走进检察院、法院开展实景研学，聚焦校园欺凌、网络诈骗、网络造谣等成长风险场景',
-    1
-  ).lastInsertRowid;
-
-  insertPoint.run(day1Id, '上午 09:00', '开营仪式', '法治护航少年成长主题营会正式启动，人大代表、检察官、社区工作人员出席开营仪式。', '[]', null, 1);
-  insertPoint.run(day1Id, '上午 10:00', '检察院参观', '走进检察院，了解检察职能，参观未成年人检察工作区。', '[]', null, 2);
-  insertPoint.run(day1Id, '下午 14:00', '法院旁听', '走进法院，旁听案件审理，感受司法威严。', '[]', null, 3);
-
-  const day2Id = insertDay.run(
-    '2026-07-21',
-    '次日：社区法治实践',
-    '在枫树社区开展基础法治思维转化，案例拆解、角色扮演、结营仪式',
-    2
-  ).lastInsertRowid;
-
-  insertPoint.run(day2Id, '上午 09:00', '案例拆解 workshop', '通过真实案例拆解，帮助青少年认清各类违法风险的危害与后果。', '[]', null, 1);
-  insertPoint.run(day2Id, '上午 10:30', '角色扮演', '趣味角色扮演活动，在互动中学习法律知识。', '[]', null, 2);
-  insertPoint.run(day2Id, '下午 14:00', '结营仪式', '人大代表现场观摩研学成果，颁发结业证书，展示法治情景绘制作品。', '[]', null, 3);
-
-  // 初始化设置
-  db.prepare('INSERT INTO activity_review_settings (enabled) VALUES (1)').run();
-  db.prepare('INSERT INTO student_works_settings (enabled) VALUES (1)').run();
-  db.prepare('INSERT INTO promise_wall_settings (enabled) VALUES (1)').run();
-
-  console.log('活动回顾、学生作品、承诺墙数据已初始化');
 }
 
 // 记录操作日志

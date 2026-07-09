@@ -564,69 +564,6 @@ export const api = {
       body: JSON.stringify({ order }),
     }),
 
-  // 活动回顾
-  getActivityReview: () =>
-    request('/activity-review'),
-  getActivityReviewAdmin: () =>
-    request('/activity-review/admin', { requireAuth: true }),
-  updateActivityReview: (data: any) =>
-    request('/activity-review', {
-      method: 'PUT',
-      requireAuth: true,
-      body: JSON.stringify(data),
-    }),
-
-  // 学生作品
-  getStudentWorks: () =>
-    request('/student-works'),
-  getStudentWorksAdmin: () =>
-    request('/student-works/admin', { requireAuth: true }),
-  createStudentWork: (data: any) =>
-    request('/student-works', {
-      method: 'POST',
-      requireAuth: true,
-      body: JSON.stringify(data),
-    }),
-  updateStudentWork: (id: number, data: any) =>
-    request(`/student-works/${id}`, {
-      method: 'PUT',
-      requireAuth: true,
-      body: JSON.stringify(data),
-    }),
-  deleteStudentWork: (id: number) =>
-    request(`/student-works/${id}`, {
-      method: 'DELETE',
-      requireAuth: true,
-    }),
-  updateStudentWorksEnabled: (enabled: boolean) =>
-    request('/student-works/enabled', {
-      method: 'PUT',
-      requireAuth: true,
-      body: JSON.stringify({ enabled }),
-    }),
-
-  // 承诺墙
-  getPromiseWall: () =>
-    request('/promise-wall'),
-  getPromiseWallAdmin: () =>
-    request('/promise-wall/admin', { requireAuth: true }),
-  createSignature: (data: any) =>
-    request('/promise-wall/signatures', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-  deleteSignature: (id: number) =>
-    request(`/promise-wall/signatures/${id}`, {
-      method: 'DELETE',
-      requireAuth: true,
-    }),
-  updatePromiseWallEnabled: (enabled: boolean) =>
-    request('/promise-wall/enabled', {
-      method: 'PUT',
-      requireAuth: true,
-      body: JSON.stringify({ enabled }),
-    }),
-
   // 操作日志与撤回
   getChangeLogs: (table?: string, limit?: number) =>
     request(`/change-logs${table ? `?table=${table}` : ''}${limit ? `${table ? '&' : '?'}limit=${limit}` : ''}`, { requireAuth: true }),
@@ -634,6 +571,108 @@ export const api = {
   undoChange: (logId: number) =>
     request(`/change-logs/${logId}/undo`, {
       method: 'POST',
+      requireAuth: true,
+    }),
+
+  // 活动回顾
+  getActivityReviews: () =>
+    request('/activity-reviews'),
+  
+  getAllActivityReviews: () =>
+    request('/activity-reviews?all=true', { requireAuth: true }),
+  
+  getActivityReview: (id: number) =>
+    request(`/activity-reviews/${id}`),
+  
+  createActivityReview: (data: any) =>
+    request('/activity-reviews', {
+      method: 'POST',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  updateActivityReview: (id: number, data: any) =>
+    request(`/activity-reviews/${id}`, {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  deleteActivityReview: (id: number) =>
+    request(`/activity-reviews/${id}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    }),
+  
+  createActivityReviewItem: (data: any) =>
+    request('/activity-review-items', {
+      method: 'POST',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  deleteActivityReviewItem: (id: number) =>
+    request(`/activity-review-items/${id}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    }),
+
+  // 学生作品
+  getStudentWorks: () =>
+    request('/student-works'),
+  
+  getAllStudentWorks: () =>
+    request('/student-works?all=true', { requireAuth: true }),
+  
+  getStudentWork: (id: number) =>
+    request(`/student-works/${id}`),
+  
+  createStudentWork: (data: any) =>
+    request('/student-works', {
+      method: 'POST',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  updateStudentWork: (id: number, data: any) =>
+    request(`/student-works/${id}`, {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  deleteStudentWork: (id: number) =>
+    request(`/student-works/${id}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    }),
+
+  // 承诺墙签名
+  getPromiseWallSignatures: () =>
+    request('/promise-wall-signatures'),
+  
+  getAllPromiseWallSignatures: () =>
+    request('/promise-wall-signatures?all=true', { requireAuth: true }),
+  
+  getPromiseWallSignature: (id: number) =>
+    request(`/promise-wall-signatures/${id}`),
+  
+  createPromiseWallSignature: (data: any) =>
+    request('/promise-wall-signatures', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  
+  updatePromiseWallSignature: (id: number, data: any) =>
+    request(`/promise-wall-signatures/${id}`, {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  deletePromiseWallSignature: (id: number) =>
+    request(`/promise-wall-signatures/${id}`, {
+      method: 'DELETE',
       requireAuth: true,
     }),
 };

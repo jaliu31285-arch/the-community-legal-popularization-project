@@ -4,15 +4,15 @@ import { ChevronRight, ChevronLeft, Calendar, ArrowRight, Phone, Mail, MapPin, U
 import { api } from '@/services/api';
 
 const defaultBanners = [
-  { title: '法润青苗', subtitle: '未成年人网络安全普法平台', description: '守护青少年健康成长，共筑清朗网络空间', bg: 'from-blue-700 via-indigo-700 to-blue-800' },
-  { title: '拒绝网络暴力', subtitle: '共建友善网络环境', description: '学法懂法，依法维权', bg: 'from-indigo-700 via-blue-700 to-sky-700' },
-  { title: '谨防网络诈骗', subtitle: '守护青春钱袋子', description: '认清诈骗套路，提高防范意识', bg: 'from-red-700 via-rose-700 to-orange-700' },
+  { title: '法治护航 少年成长', subtitle: '人大代表联动未检职能社区青少年法治教育主题营会', description: '守护青少年健康成长，共筑清朗网络空间', bg: 'from-blue-700 via-indigo-700 to-blue-800' },
+  { title: '抵制校园欺凌与网络暴力', subtitle: '共建友善网络环境', description: '学法懂法，依法维权', bg: 'from-indigo-700 via-blue-700 to-sky-700' },
+  { title: '防范网络诈骗与造谣', subtitle: '守护青春钱袋子', description: '认清诈骗套路，提高防范意识', bg: 'from-red-700 via-rose-700 to-orange-700' },
 ];
 
 const defaultTopics = [
-  { id: 1, title: '拒绝网络暴力', description: '认识网络暴力的危害，学会保护自己，共建友善清朗的网络空间', icon: 'AlertTriangle', route: '/cyberbullying' },
-  { id: 2, title: '谨防网络诈骗', description: '识破诈骗套路，守护财产安全，练就火眼金睛', icon: 'Shield', route: '/fraud' },
-  { id: 3, title: '理性消费成长', description: '培养正确消费观，远离消费陷阱，树立健康消费理念', icon: 'ShoppingBag', route: '/consumption' },
+  { id: 1, title: '校园欺凌与网络暴力', description: '认识校园欺凌与网络暴力，学会自我保护，共建友善网络空间', icon: 'AlertTriangle', route: '/cyberbullying' },
+  { id: 2, title: '网络诈骗与网络造谣', description: '识破诈骗套路，远离网络造谣，守护财产安全', icon: 'Shield', route: '/fraud' },
+  { id: 3, title: '不良行为矫治与权益保护', description: '认清不良行为危害，掌握权益保护技巧，健康快乐成长', icon: 'ShoppingBag', route: '/consumption' },
 ];
 
 const defaultNews = [

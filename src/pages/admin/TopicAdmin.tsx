@@ -3,9 +3,9 @@ import { api } from '@/services/api';
 
 const fields: CrudField[] = [
   { key: 'category', label: '专题分类', type: 'select', required: true, listDisplay: true, options: [
-    { label: '网络暴力', value: 'cyberbullying' },
-    { label: '网络诈骗', value: 'fraud' },
-    { label: '消费诱导', value: 'consumption' },
+    { label: '校园欺凌与网络暴力', value: 'campus_bullying' },
+    { label: '网络诈骗与网络造谣', value: 'fraud_prevention' },
+    { label: '不良行为矫治与权益保护', value: 'behavior_correction' },
   ]},
   { key: 'title', label: '标题', type: 'text', required: true, listDisplay: true },
   { key: 'content', label: '内容', type: 'textarea', required: true, placeholder: '请输入内容' },

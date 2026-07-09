@@ -6,9 +6,9 @@ import { useSiteStyle } from '@/hooks/useSiteStyle';
 
 const defaultNavItems = [
   { id: 1, path: '/', label: '首页' },
-  { id: 2, path: '/cyberbullying', label: '网络暴力专题' },
-  { id: 3, path: '/fraud', label: '网络诈骗专题' },
-  { id: 4, path: '/consumption', label: '消费诱导专题' },
+  { id: 2, path: '/cyberbullying', label: '校园欺凌与网络暴力' },
+  { id: 3, path: '/fraud', label: '网络诈骗与网络造谣' },
+  { id: 4, path: '/consumption', label: '不良行为矫治与权益保护' },
   { id: 5, path: '/activities', label: '活动回顾' },
   { id: 6, path: '/resources', label: '学习资源库' },
   { id: 7, path: '/achievements', label: '项目成果' },

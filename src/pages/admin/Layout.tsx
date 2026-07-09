@@ -30,9 +30,7 @@ import {
   Map,
   History,
   LayoutGrid,
-  Clock,
-  Palette,
-  HeartHandshake,
+  Heart,
 } from 'lucide-react';
 import { useAdminStore } from '@/stores/adminStore';
 
@@ -98,24 +96,38 @@ const menuItems: MenuItem[] = [
       { path: '/admin/sidebar-widgets', label: '侧边栏组件', icon: Sidebar },
     ],
   },
-  {
-    path: '/admin/activity-review',
-    label: '活动专区',
-    icon: Calendar,
-    children: [
-      { path: '/admin/activity-review', label: '活动回顾', icon: Clock },
-      { path: '/admin/student-works', label: '学生作品', icon: Palette },
-      { path: '/admin/promise-wall', label: '承诺墙', icon: HeartHandshake },
-    ],
-  },
   { path: '/admin/upload', label: '文件上传', icon: Upload },
   { path: '/admin/change-logs', label: '操作记录/撤回', icon: History },
   { path: '/admin/page-blocks', label: '页面区块管理', icon: LayoutGrid },
+  {
+    path: '/admin/activity-review',
+    label: '活动回顾管理',
+    icon: Calendar,
+    children: [
+      { path: '/admin/activity-review', label: '活动回顾', icon: Calendar },
+    ],
+  },
+  {
+    path: '/admin/student-works',
+    label: '学生作品管理',
+    icon: Image,
+    children: [
+      { path: '/admin/student-works', label: '学生作品', icon: Image },
+    ],
+  },
+  {
+    path: '/admin/promise-wall',
+    label: '承诺墙管理',
+    icon: Heart,
+    children: [
+      { path: '/admin/promise-wall', label: '承诺签名', icon: Heart },
+    ],
+  },
 ];
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['站点设置', '内容管理', '普法专题', '团队合作', '数据展示', '活动专区']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['站点设置', '内容管理', '普法专题', '团队合作', '数据展示']);
   const { isAuthenticated, admin, logout, checkAuth } = useAdminStore();
   const navigate = useNavigate();
   const location = useLocation();

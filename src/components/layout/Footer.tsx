@@ -144,21 +144,21 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link to="/cyberbullying" className="text-slate-400 hover:text-emerald-400 transition-colors">
-                      网络暴力专题
+                      校园欺凌与网络暴力
                     </Link>
                   </li>
                   <li>
                     <Link to="/fraud" className="text-slate-400 hover:text-emerald-400 transition-colors">
-                      网络诈骗专题
+                      网络诈骗与网络造谣
                     </Link>
                   </li>
                   <li>
                     <Link to="/consumption" className="text-slate-400 hover:text-emerald-400 transition-colors">
-                      消费诱导专题
+                      不良行为矫治与权益保护
                     </Link>
                   </li>
                   <li>
-                    <Link to="/activities" className="text-slate-400 hover:text-emerald-400 transition-colors">
+                    <Link to="/activity-review" className="text-slate-400 hover:text-emerald-400 transition-colors">
                       活动回顾
                     </Link>
                   </li>

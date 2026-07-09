@@ -36,8 +36,8 @@ const defaultFraudTypes = [
   { id: 2, title: '虚假中奖诈骗', description: '通过私信、邮件等方式告知中奖，要求提供个人信息并支付"手续费"、"税费"等。', icon: 'Gift', tips: ['不相信"天上掉馅饼"', '官方活动通过正规渠道通知', '不向陌生人转账'] },
   { id: 3, title: '冒充熟人诈骗', description: '冒充老师、家长、同学等熟人，以急事为由借钱或要求转账。', icon: 'UserCheck', tips: ['通过电话确认身份', '不轻易转账', '大额转账务必见面核实'] },
   { id: 4, title: '游戏交易诈骗', description: '在游戏账号、装备交易中，骗子先收取费用后失联。', icon: 'Gamepad2', tips: ['使用正规交易平台', '不私下交易', '保留交易凭证'] },
-  { id: 5, title: '充值返利诈骗', description: '声称充值游戏可以获得高额返利，引诱未成年人不断充值。', icon: 'ShoppingCart', tips: ['不相信"充值返利"', '设置消费限额', '充值前告知家长'] },
-  { id: 6, title: '兼职刷单诈骗', description: '以"轻松赚钱"为诱饵，要求先交押金或垫资刷单。', icon: 'GraduationCap', tips: ['不相信"低门槛高回报"', '不交任何押金', '正规兼职不需要垫资'] },
+  { id: 5, title: '网络造谣诈骗', description: '骗子编造虚假信息制造恐慌，引诱受害者点击虚假链接或转账。', icon: 'RefreshCw', tips: ['不信谣不传谣', '通过官方渠道核实信息', '不轻易点击不明链接'] },
+  { id: 6, title: '充值返利诈骗', description: '声称充值游戏可以获得高额返利，引诱未成年人不断充值。', icon: 'ShoppingCart', tips: ['不相信"充值返利"', '设置消费限额', '充值前告知家长'] },
 ];
 
 const defaultFraudScripts = [
@@ -106,8 +106,8 @@ export default function Fraud() {
   return (
     <div>
       <PageBanner
-        title="网络诈骗防范"
-        subtitle="认清诈骗套路，提高防范意识，守护财产安全"
+        title="网络诈骗与网络造谣"
+        subtitle="活动首日聚焦'网络诈骗'，识破套路，远离造谣"
         gradient="from-emerald-600 via-teal-500 to-cyan-500"
         icon={<AlertTriangle className="w-10 h-10 text-white" />}
       />

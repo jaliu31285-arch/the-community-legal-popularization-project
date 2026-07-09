@@ -110,10 +110,10 @@ const configMap: PageConfig[] = [
     ],
   },
   {
-    pageName: '网络暴力专题',
+    pageName: '校园欺凌与网络暴力',
     pagePath: '/cyberbullying',
     icon: <AlertTriangle className="w-5 h-5" />,
-    description: '网络暴力防治普法专题页面',
+    description: '校园欺凌与网络暴力防治普法专题页面',
     items: [
       {
         name: '专题内容',
@@ -139,10 +139,10 @@ const configMap: PageConfig[] = [
     ],
   },
   {
-    pageName: '网络诈骗专题',
+    pageName: '网络诈骗与网络造谣',
     pagePath: '/fraud',
     icon: <Shield className="w-5 h-5" />,
-    description: '网络诈骗防范普法专题页面',
+    description: '网络诈骗与网络造谣防范普法专题页面',
     items: [
       {
         name: '专题内容',
@@ -168,10 +168,10 @@ const configMap: PageConfig[] = [
     ],
   },
   {
-    pageName: '消费诱导专题',
+    pageName: '不良行为矫治与权益保护',
     pagePath: '/consumption',
     icon: <ShoppingBag className="w-5 h-5" />,
-    description: '消费诱导识别普法专题页面',
+    description: '不良行为矫治与权益保护普法专题页面',
     items: [
       {
         name: '专题内容',
