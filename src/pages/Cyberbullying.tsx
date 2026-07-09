@@ -105,8 +105,8 @@ export default function Cyberbullying() {
               </div>
               <span className="text-emerald-100 text-sm">普法专题</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-3">拒绝网络暴力</h1>
-            <p className="text-lg text-emerald-100">共建友善清朗的网络空间，守护青少年健康成长</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">校园欺凌与网络暴力</h1>
+            <p className="text-lg text-emerald-100">认识欺凌危害，学会自我保护，共筑友善成长环境</p>
           </div>
         </div>
       </div>

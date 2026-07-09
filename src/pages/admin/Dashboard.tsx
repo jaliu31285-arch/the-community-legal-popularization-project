@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Image,
   Newspaper,
@@ -9,19 +10,28 @@ import {
   Download,
   TrendingUp,
   RefreshCw,
+  ChevronRight,
 } from 'lucide-react';
 import { api } from '@/services/api';
 
 const statCards = [
-  { key: 'banners', label: '轮播图', icon: Image, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50' },
-  { key: 'news', label: '新闻动态', icon: Newspaper, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50' },
-  { key: 'activities', label: '活动记录', icon: Calendar, color: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50' },
-  { key: 'resources', label: '学习资源', icon: FolderOpen, color: 'from-amber-500 to-amber-600', bg: 'bg-amber-50' },
-  { key: 'team', label: '团队成员', icon: Users, color: 'from-rose-500 to-rose-600', bg: 'bg-rose-50' },
-  { key: 'achievements', label: '项目成果', icon: Award, color: 'from-cyan-500 to-cyan-600', bg: 'bg-cyan-50' },
+  { key: 'banners', label: '轮播图', icon: Image, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', path: '/admin/banners' },
+  { key: 'news', label: '新闻动态', icon: Newspaper, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', path: '/admin/news' },
+  { key: 'activities', label: '活动记录', icon: Calendar, color: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', path: '/admin/activities' },
+  { key: 'resources', label: '学习资源', icon: FolderOpen, color: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', path: '/admin/resources' },
+  { key: 'team', label: '团队成员', icon: Users, color: 'from-rose-500 to-rose-600', bg: 'bg-rose-50', path: '/admin/team' },
+  { key: 'achievements', label: '项目成果', icon: Award, color: 'from-cyan-500 to-cyan-600', bg: 'bg-cyan-50', path: '/admin/achievements' },
+];
+
+const quickActions = [
+  { label: '添加轮播图', icon: Image, color: 'bg-blue-500', path: '/admin/banners' },
+  { label: '发布新闻', icon: Newspaper, color: 'bg-purple-500', path: '/admin/news' },
+  { label: '上传资源', icon: FolderOpen, color: 'bg-amber-500', path: '/admin/resources' },
+  { label: '管理成员', icon: Users, color: 'bg-emerald-500', path: '/admin/team' },
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -63,9 +73,10 @@ export default function Dashboard() {
           const Icon = stat.icon;
           const value = stats?.[stat.key] || 0;
           return (
-            <div
+            <button
               key={stat.key}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+              onClick={() => navigate(stat.path)}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md hover:border-blue-200 transition-all text-left w-full group"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -74,15 +85,18 @@ export default function Dashboard() {
                     {loading ? '...' : value}
                   </p>
                 </div>
-                <div className={`w-12 h-12 ${stat.bg} rounded-xl flex items-center justify-center`}>
+                <div className={`w-12 h-12 ${stat.bg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                   <Icon className={`w-6 h-6 bg-gradient-to-br ${stat.color} bg-clip-text text-transparent`} style={{ color: 'transparent' }} />
                 </div>
               </div>
-              <div className="mt-4 flex items-center text-sm">
-                <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
-                <span className="text-emerald-500 font-medium">运行中</span>
+              <div className="mt-4 flex items-center justify-between text-sm">
+                <div className="flex items-center">
+                  <TrendingUp className="w-4 h-4 text-emerald-500 mr-1" />
+                  <span className="text-emerald-500 font-medium">运行中</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -129,17 +143,13 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <h2 className="text-lg font-semibold text-slate-800 mb-4">快捷操作</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: '添加轮播图', icon: Image, color: 'bg-blue-500' },
-            { label: '发布新闻', icon: Newspaper, color: 'bg-purple-500' },
-            { label: '上传资源', icon: FolderOpen, color: 'bg-amber-500' },
-            { label: '管理成员', icon: Users, color: 'bg-emerald-500' },
-          ].map((item) => {
+          {quickActions.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.label}
-                className="flex flex-col items-center gap-3 p-6 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group"
+                onClick={() => navigate(item.path)}
+                className="flex flex-col items-center gap-3 p-6 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group w-full"
               >
                 <div className={`w-12 h-12 ${item.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                   <Icon className="w-6 h-6 text-white" />

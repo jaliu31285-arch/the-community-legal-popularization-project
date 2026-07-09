@@ -78,6 +78,9 @@ try {
 try {
   db.prepare('ALTER TABLE news ADD COLUMN file_url TEXT').run();
 } catch (e) {}
+try {
+  db.prepare('ALTER TABLE news ADD COLUMN video_url TEXT').run();
+} catch (e) {}
 
 // 活动表
 db.exec(`
@@ -104,6 +107,9 @@ try {
 } catch (e) {}
 try {
   db.prepare('ALTER TABLE activities ADD COLUMN link_url TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE activities ADD COLUMN video_url TEXT').run();
 } catch (e) {}
 
 // 资源表
@@ -354,6 +360,9 @@ try {
 try {
   db.prepare('ALTER TABLE announcements ADD COLUMN file_url TEXT').run();
 } catch (e) {}
+try {
+  db.prepare('ALTER TABLE announcements ADD COLUMN video_url TEXT').run();
+} catch (e) {}
 
 // 快速链接表
 db.exec(`
@@ -478,18 +487,18 @@ if (settingsCount.count === 0) {
     INSERT INTO site_settings (setting_key, setting_value, setting_type, description)
     VALUES (?, ?, ?, ?)
   `);
-  insertSetting.run('site_name', '法润青苗', 'text', '网站名称');
-  insertSetting.run('site_subtitle', '未成年人网络安全普法平台', 'text', '网站副标题');
-  insertSetting.run('site_description', '四川大学"法暖万家·守护朝夕"团队打造的未成年人网络安全普法公益平台，守护青少年健康成长，共筑清朗网络空间。', 'textarea', '网站描述');
+  insertSetting.run('site_name', '法治护航少年成长', 'text', '网站名称');
+  insertSetting.run('site_subtitle', '人大代表联动未检职能社区青少年法治教育主题营会', 'text', '网站副标题');
+  insertSetting.run('site_description', '以代表履职+未检联动+情景式普法，为青少年筑牢法治思想防线，守护青少年健康成长。', 'textarea', '网站描述');
   insertSetting.run('logo_url', '', 'text', 'Logo图片地址');
   insertSetting.run('contact_email', 'farunqingmiao@example.com', 'text', '联系邮箱');
   insertSetting.run('contact_phone', '028-XXXXXXX', 'text', '联系电话');
-  insertSetting.run('contact_address', '四川省成都市四川大学', 'text', '联系地址');
+  insertSetting.run('contact_address', '枫树社区', 'text', '联系地址');
   insertSetting.run('icp_number', '蜀ICP备XXXXXXXX号', 'text', '备案号');
-  insertSetting.run('copyright', '© 2024 法润青苗 - 四川大学"法暖万家·守护朝夕"团队', 'text', '版权信息');
-  insertSetting.run('banner_title', '法润青苗', 'text', '首页大Banner标题');
-  insertSetting.run('banner_subtitle', '未成年人网络安全普法平台', 'text', '首页大Banner副标题');
-  insertSetting.run('banner_description', '守护青少年健康成长，共筑清朗网络空间', 'text', '首页大Banner描述');
+  insertSetting.run('copyright', '© 2026 法治护航少年成长主题营会', 'text', '版权信息');
+  insertSetting.run('banner_title', '法治护航 少年成长', 'text', '首页大Banner标题');
+  insertSetting.run('banner_subtitle', '人大代表联动未检职能社区青少年法治教育主题营会', 'text', '首页大Banner副标题');
+  insertSetting.run('banner_description', '2026年7月20日-21日 | 以代表履职+未检联动+情景式普法，为青少年筑牢法治思想防线', 'text', '首页大Banner描述');
   insertSetting.run('banner_image', '', 'text', '首页大Banner背景图');
   insertSetting.run('site_style', 'style-a', 'text', '网站风格：style-a公益组织风 / style-b政务教育风 / style-c青春校园风');
   insertSetting.run('style_locked', '0', 'text', '风格锁定：0未锁定 / 1已锁定');
@@ -581,6 +590,313 @@ if (sidebarCount.count === 0) {
   insertWidget.run('快速链接', 'quick_links', '', 3, 'right');
   insertWidget.run('联系我们', 'contact', '', 4, 'right');
   console.log('侧边栏组件已初始化');
+}
+
+// 页面动态区块表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS page_blocks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    page_name TEXT NOT NULL DEFAULT 'home',
+    block_type TEXT NOT NULL DEFAULT 'text',
+    title TEXT,
+    subtitle TEXT,
+    content TEXT,
+    image_url TEXT,
+    video_url TEXT,
+    items TEXT,
+    background_color TEXT,
+    text_color TEXT,
+    layout TEXT DEFAULT 'default',
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+try {
+  db.prepare('ALTER TABLE page_blocks ADD COLUMN video_url TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE page_blocks ADD COLUMN items TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE page_blocks ADD COLUMN text_color TEXT').run();
+} catch (e) {}
+try {
+  db.prepare('ALTER TABLE page_blocks ADD COLUMN layout TEXT DEFAULT \'default\'').run();
+} catch (e) {}
+
+// 操作日志表（用于撤回功能）
+db.exec(`
+  CREATE TABLE IF NOT EXISTS change_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    table_name TEXT NOT NULL,
+    record_id INTEGER NOT NULL,
+    operation TEXT NOT NULL,
+    old_data TEXT,
+    new_data TEXT,
+    admin_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 初始化首页动态区块（法治营会主题）
+const pageBlocksCount = db.prepare('SELECT COUNT(*) as count FROM page_blocks').get() as { count: number };
+if (pageBlocksCount.count === 0) {
+  const insertBlock = db.prepare(`
+    INSERT INTO page_blocks (page_name, block_type, title, subtitle, content, image_url, video_url, items, background_color, text_color, layout, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  // 1. Hero 横幅区块
+  insertBlock.run('home', 'hero',
+    '法治护航 少年成长',
+    '人大代表联动未检职能社区青少年法治教育主题营会',
+    '2026年7月20日-21日 | 以代表履职+未检联动+情景式普法，为青少年筑牢法治思想防线',
+    '', '', '',
+    'from-blue-600 via-blue-500 to-cyan-400',
+    'white',
+    'default', 1
+  );
+
+  // 2. 活动介绍区块（图文）
+  insertBlock.run('home', 'image_text',
+    '活动介绍',
+    '两天沉浸式社区主题营会',
+    '此次为两天的暑期法治主题营会。首日组织学员走进检察院、法院开展实景研学，活动聚焦青少年高频面临的校园欺凌、网络诈骗、网络造谣、不良行为矫治、权益自我保护等成长风险场景，精准贴合青少年法治教育需求。次日在枫树社区开展基础法治思维转化，依托案例拆解、角色扮演等趣味形式，帮助青少年认清各类违法风险的危害与后果，掌握基础自我保护技巧。',
+    '', '', '',
+    '', '', 'left', 2
+  );
+
+  // 3. 活动亮点卡片组
+  insertBlock.run('home', 'cards',
+    '活动亮点',
+    '四大特色 精准普法',
+    '', '', '',
+    JSON.stringify([
+      { icon: 'Landmark', title: '实景研学', desc: '走进检察院、法院，零距离感受司法庄严' },
+      { icon: 'Users', title: '代表履职', desc: '法律领域人大代表现场指导，专业赋能' },
+      { icon: 'Theater', title: '情景教学', desc: '案例拆解、角色扮演，沉浸式学法体验' },
+      { icon: 'Award', title: '结营仪式', desc: '法治情景绘制、学法心得分享，见证成长' },
+    ]),
+    '', '', 'default', 3
+  );
+
+  // 4. 每日回顾（图片集）
+  insertBlock.run('home', 'gallery',
+    '每日精彩回顾',
+    '见证每一个成长瞬间',
+    '', '', '',
+    JSON.stringify([
+      { title: 'Day 1', subtitle: '检察法院实景研学', image: '' },
+      { title: 'Day 2', subtitle: '社区法治思维转化', image: '' },
+    ]),
+    'bg-slate-50', '', 'default', 4
+  );
+
+  // 5. 学生作品展示
+  insertBlock.run('home', 'gallery',
+    '学生作品展示',
+    '法治情景绘制 · 学法心得分享',
+    '', '', '',
+    JSON.stringify([
+      { title: '法治海报作品一', subtitle: '作者：XXX', image: '' },
+      { title: '法治海报作品二', subtitle: '作者：XXX', image: '' },
+      { title: '爱心承诺卡', subtitle: '作者：XXX', image: '' },
+      { title: '学法心得', subtitle: '作者：XXX', image: '' },
+    ]),
+    '', '', 'default', 5
+  );
+
+  // 6. 视频区块
+  insertBlock.run('home', 'video',
+    '活动精彩视频',
+    '记录营会美好瞬间',
+    '', '', '',
+    '',
+    'bg-slate-900', 'white', 'default', 6
+  );
+
+  // 7. 数据统计
+  insertBlock.run('home', 'stats',
+    '活动数据',
+    '用数字见证成效',
+    '', '', '',
+    JSON.stringify([
+      { label: '参与学员', value: '50+', icon: 'Users', color: 'blue' },
+      { label: '法治课程', value: '8节', icon: 'BookOpen', color: 'green' },
+      { label: '实践基地', value: '3个', icon: 'MapPin', color: 'orange' },
+      { label: '学生作品', value: '100+', icon: 'Image', color: 'purple' },
+    ]),
+    'bg-gradient-to-r from-blue-600 to-cyan-500', 'white', 'default', 7
+  );
+
+  console.log('首页动态区块已初始化');
+}
+
+// 活动回顾 - 日期表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS activity_review_days (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 活动回顾 - 时间点表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS activity_review_points (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    day_id INTEGER NOT NULL,
+    time TEXT NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    images TEXT,
+    video_url TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (day_id) REFERENCES activity_review_days(id) ON DELETE CASCADE
+  )
+`);
+
+// 活动回顾开关设置
+db.exec(`
+  CREATE TABLE IF NOT EXISTS activity_review_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    enabled INTEGER DEFAULT 1,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 学生作品表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS student_works (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    category TEXT DEFAULT '其他',
+    author TEXT,
+    description TEXT,
+    image_url TEXT,
+    content_text TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 学生作品开关设置
+db.exec(`
+  CREATE TABLE IF NOT EXISTS student_works_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    enabled INTEGER DEFAULT 1,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 承诺墙签名表
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promise_wall_signatures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    signature_type TEXT DEFAULT 'text',
+    signature_image TEXT,
+    message TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 承诺墙开关设置
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promise_wall_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    enabled INTEGER DEFAULT 1,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// 初始化活动回顾数据
+const reviewDaysCount = db.prepare('SELECT COUNT(*) as count FROM activity_review_days').get() as { count: number };
+if (reviewDaysCount.count === 0) {
+  const insertDay = db.prepare(`
+    INSERT INTO activity_review_days (date, title, description, sort_order)
+    VALUES (?, ?, ?, ?)
+  `);
+  const insertPoint = db.prepare(`
+    INSERT INTO activity_review_points (day_id, time, title, content, images, video_url, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const day1Id = insertDay.run(
+    '2026-07-20',
+    '首日：实景研学',
+    '走进检察院、法院开展实景研学，聚焦校园欺凌、网络诈骗、网络造谣等成长风险场景',
+    1
+  ).lastInsertRowid;
+
+  insertPoint.run(day1Id, '上午 09:00', '开营仪式', '法治护航少年成长主题营会正式启动，人大代表、检察官、社区工作人员出席开营仪式。', '[]', null, 1);
+  insertPoint.run(day1Id, '上午 10:00', '检察院参观', '走进检察院，了解检察职能，参观未成年人检察工作区。', '[]', null, 2);
+  insertPoint.run(day1Id, '下午 14:00', '法院旁听', '走进法院，旁听案件审理，感受司法威严。', '[]', null, 3);
+
+  const day2Id = insertDay.run(
+    '2026-07-21',
+    '次日：社区法治实践',
+    '在枫树社区开展基础法治思维转化，案例拆解、角色扮演、结营仪式',
+    2
+  ).lastInsertRowid;
+
+  insertPoint.run(day2Id, '上午 09:00', '案例拆解 workshop', '通过真实案例拆解，帮助青少年认清各类违法风险的危害与后果。', '[]', null, 1);
+  insertPoint.run(day2Id, '上午 10:30', '角色扮演', '趣味角色扮演活动，在互动中学习法律知识。', '[]', null, 2);
+  insertPoint.run(day2Id, '下午 14:00', '结营仪式', '人大代表现场观摩研学成果，颁发结业证书，展示法治情景绘制作品。', '[]', null, 3);
+
+  // 初始化设置
+  db.prepare('INSERT INTO activity_review_settings (enabled) VALUES (1)').run();
+  db.prepare('INSERT INTO student_works_settings (enabled) VALUES (1)').run();
+  db.prepare('INSERT INTO promise_wall_settings (enabled) VALUES (1)').run();
+
+  console.log('活动回顾、学生作品、承诺墙数据已初始化');
+}
+
+// 记录操作日志
+export function logChange(tableName: string, recordId: number, operation: 'update' | 'delete' | 'create', oldData: any = null, newData: any = null, adminId: number | null = null) {
+  db.prepare(`
+    INSERT INTO change_logs (table_name, record_id, operation, old_data, new_data, admin_id)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(
+    tableName,
+    recordId,
+    operation,
+    oldData ? JSON.stringify(oldData) : null,
+    newData ? JSON.stringify(newData) : null,
+    adminId
+  );
+}
+
+// 获取最近的操作记录
+export function getRecentChanges(tableName?: string, limit = 20) {
+  let sql = 'SELECT * FROM change_logs';
+  const params: any[] = [];
+  if (tableName) {
+    sql += ' WHERE table_name = ?';
+    params.push(tableName);
+  }
+  sql += ' ORDER BY id DESC LIMIT ?';
+  params.push(limit);
+  return db.prepare(sql).all(...params).map((row: any) => ({
+    ...row,
+    old_data: row.old_data ? JSON.parse(row.old_data) : null,
+    new_data: row.new_data ? JSON.parse(row.new_data) : null,
+  }));
 }
 
 export default db;

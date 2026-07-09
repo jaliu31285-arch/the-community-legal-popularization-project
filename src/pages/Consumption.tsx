@@ -1,257 +1,281 @@
 import { useState, useEffect } from 'react';
 import {
-  ShoppingBag,
-  Cpu,
-  Layers,
-  Gift,
-  Coins,
-  Sparkles,
-  HelpCircle,
-  Wallet,
-  Users,
-  Shield,
-  Sun,
-  Palette,
+  AlertTriangle,
   BookOpen,
-  Home,
-  Music,
-  ChevronRight,
+  Scale,
+  ShieldCheck,
+  Phone,
+  Flag,
+  UserCircle,
+  Heart,
+  Gavel,
+  Lightbulb,
+  ChevronDown,
+  ChevronUp,
+  Tag,
 } from 'lucide-react';
 import PageBanner from '@/components/common/PageBanner';
 import { api } from '@/services/api';
 
 const iconMap: Record<string, React.ReactNode> = {
-  Cpu: <Cpu className="w-8 h-8" />,
-  Layers: <Layers className="w-8 h-8" />,
-  Gift: <Gift className="w-8 h-8" />,
-  Coins: <Coins className="w-8 h-8" />,
-  Sparkles: <Sparkles className="w-8 h-8" />,
-  HelpCircle: <HelpCircle className="w-7 h-7" />,
-  Wallet: <Wallet className="w-7 h-7" />,
-  Users: <Users className="w-7 h-7" />,
-  Shield: <Shield className="w-7 h-7" />,
-  Sun: <Sun className="w-8 h-8" />,
-  Palette: <Palette className="w-8 h-8" />,
-  BookOpen: <BookOpen className="w-8 h-8" />,
-  Home: <Home className="w-8 h-8" />,
-  Music: <Music className="w-8 h-8" />,
+  AlertTriangle: <AlertTriangle className="w-6 h-6" />,
+  BookOpen: <BookOpen className="w-6 h-6" />,
+  Scale: <Scale className="w-6 h-6" />,
+  ShieldCheck: <ShieldCheck className="w-6 h-6" />,
+  Phone: <Phone className="w-5 h-5" />,
+  Flag: <Flag className="w-5 h-5" />,
+  Gavel: <Gavel className="w-6 h-6" />,
+  Lightbulb: <Lightbulb className="w-6 h-6" />,
 };
 
-const defaultConsumptionTraps = [
-  { title: '算法陷阱', description: '短视频、直播平台通过算法推荐，让用户沉迷其中，不知不觉产生消费冲动。', icon: 'Cpu', examples: ['无限刷短视频', '直播间停留时间过长', '反复看到相似商品推荐'] },
-  { title: '直播打赏', description: '主播通过话术引导、制造紧迫感等方式，诱导未成年人进行高额打赏。', icon: 'Gift', examples: ['"感谢大哥的礼物"', '"最后5分钟，冲榜了"', '"加入粉丝团有福利"'] },
-  { title: '游戏充值', description: '游戏内虚拟道具、皮肤等消费，容易让未成年人产生攀比心理。', icon: 'Coins', examples: ['限时皮肤",不买就没了', '"充值返利，错过可惜"', '"别人都有，我也要"'] },
-  { title: '虚假福利', description: '声称"限时特惠"、"限量抢购"等，利用从众心理诱导消费。', icon: 'Sparkles', examples: ['仅剩最后3件"', '"前100名特价"', '"内部员工价"'] },
-  { title: '信息茧房', description: '平台根据用户偏好推送相似内容，导致视野狭窄，更容易被营销信息影响。', icon: 'Layers', examples: ['只看到自己喜欢的内容', '难以获取不同观点', '被单一类型的广告包围'] },
+const defaultBehaviors = [
+  { id: 1, title: '校园欺凌行为', icon: 'AlertTriangle', color: 'red', description: '包括肢体欺凌、言语欺凌、社交欺凌、网络欺凌等多种形式，对受害者造成身心伤害。', examples: ['打架斗殴', '起侮辱性绰号', '孤立排挤同学', '网络造谣'] },
+  { id: 2, title: '不良交友行为', icon: 'UserCircle', color: 'orange', description: '与社会不良人员交往，容易受到不良影响，甚至走上违法犯罪道路。', examples: ['结识社会闲散人员', '参与不良团伙', '夜不归宿', '离家出走'] },
+  { id: 3, title: '不良上网行为', icon: 'AlertTriangle', color: 'orange', description: '沉迷网络、浏览不良信息、参与网络暴力等，影响身心健康和学习生活。', examples: ['沉迷网络游戏', '浏览色情暴力网站', '参与网络骂战', '人肉搜索他人'] },
+  { id: 4, title: '违纪违法行为', icon: 'Gavel', color: 'red', description: '小偷小摸、敲诈勒索、打架斗殴等行为，严重者将触犯法律。', examples: ['偷窃他人财物', '敲诈勒索低年级同学', '聚众斗殴', '故意毁坏公物'] },
 ];
 
-const defaultRationalConsumptionTips = [
-  { id: 1, title: '制定消费计划', content: '每月零花钱制定预算，分清哪些是必需品，哪些是想要的东西。坚持记账，了解钱的去向。', icon: 'Wallet' },
-  { id: 2, title: '延迟消费决策', content: '遇到喜欢的东西，先放一放，等待24小时再决定是否购买。很多冲动消费都会在冷静后消失。', icon: 'HelpCircle' },
-  { id: 3, title: '货比三家', content: '购买前多比较不同平台的价格和评价，不急于下单。理性消费不是不消费，而是聪明地消费。', icon: 'Users' },
-  { id: 4, title: '区分"需要"和"想要"', content: '需要是生存必需的东西，想要是满足欲望的东西。问问自己："不买这个会怎样？"', icon: 'Shield' },
+const defaultCorrectionMethods = [
+  { id: 1, title: '认识危害', icon: 'Lightbulb', content: '充分认识不良行为的危害性，明白"小时偷针，大时偷金"的道理，从小事做起，防微杜渐。' },
+  { id: 2, title: '自我约束', icon: 'ShieldCheck', content: '增强法律意识和纪律观念，自觉遵守校规校纪和法律法规，培养自控能力。' },
+  { id: 3, title: '主动求助', icon: 'BookOpen', content: '遇到困难或困惑时，主动向家长、老师、心理咨询师求助，不要自己扛着。' },
+  { id: 4, title: '远离不良', icon: 'AlertTriangle', content: '远离有不良行为的朋友，不参与不良团伙活动，不交损友。' },
 ];
 
-const defaultScreenFreeActivities = [
-  { title: '阅读时光', description: '阅读纸质书籍，沉浸在文字的世界里', icon: 'BookOpen', ideas: ['读一本好书', '写读书笔记', '分享读书心得'] },
-  { title: '户外运动', description: '走出家门，享受阳光和新鲜空气', icon: 'Sun', ideas: ['骑自行车', '打篮球', '跑步锻炼'] },
-  { title: '手工制作', description: '动手创造，体验成就感', icon: 'Palette', ideas: ['画画', '做手工', 'DIY装饰'] },
-  { title: '家庭互动', description: '和家人一起度过美好时光', icon: 'Home', ideas: ['看电影', '玩桌游', '一起做饭'] },
-  { title: '音乐欣赏', description: '聆听美妙的音乐，放松心情', icon: 'Music', ideas: ['学乐器', '听音乐会', '唱歌'] },
+const defaultRights = [
+  { id: 1, title: '生命健康权', icon: 'Heart', content: '享有生命健康的权利，任何人不得伤害你的身体，校园欺凌、家庭暴力都是违法行为。' },
+  { id: 2, title: '受教育权', icon: 'BookOpen', content: '享有接受教育的权利，学校不得随意开除学生，家长应保障子女完成义务教育。' },
+  { id: 3, title: '人格尊严权', icon: 'UserCircle', content: '享有人格尊严不受侵犯的权利，禁止侮辱、诽谤、诬告陷害未成年人。' },
+  { id: 4, title: '隐私权', icon: 'ShieldCheck', content: '享有隐私权，信件、日记、手机信息等个人隐私受法律保护。' },
+  { id: 5, title: '财产权', icon: 'Gavel', content: '个人合法财产受法律保护，任何人不得侵占、哄抢、破坏。' },
+];
+
+const defaultProtectionTips = [
+  { id: 1, title: '遭遇校园欺凌怎么办？', steps: ['保持冷静，确保人身安全', '及时向老师、家长报告', '保留证据（伤痕、信息等）', '必要时报警处理'] },
+  { id: 2, title: '如何保护个人隐私？', steps: ['不随意透露个人信息', '设置强密码，定期更换', '不点击陌生链接，不下载未知软件', '谨慎发布个人照片和动态'] },
+  { id: 3, title: '合法权益受侵害如何维权？', steps: ['告诉家长或老师', '向学校、社区反映', '拨打12355青少年维权热线', '必要时通过法律途径解决'] },
+];
+
+const defaultHelpChannels = [
+  { title: '12355', phone: '12355', description: '青少年维权热线', icon: 'Phone' },
+  { title: '110', phone: '110', description: '报警电话（紧急情况）', icon: 'Flag' },
+  { title: '家长老师', phone: '-', description: '最直接的求助对象', icon: 'Heart' },
+  { title: '法律援助', phone: '12348', description: '法律援助服务热线', icon: 'Scale' },
 ];
 
 export default function Consumption() {
-  const [consumptionTraps, setConsumptionTraps] = useState<any[]>([]);
-  const [rationalConsumptionTips, setRationalConsumptionTips] = useState<any[]>([]);
-  const [screenFreeActivities, setScreenFreeActivities] = useState<any[]>([]);
+  const [behaviors, setBehaviors] = useState<any[]>(defaultBehaviors);
+  const [expandedTip, setExpandedTip] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const topics = await api.getTopics('consumption');
-        const knowledgeItems = topics.filter((t: any) => t.type === 'knowledge');
-        const methodItems = topics.filter((t: any) => t.type === 'method');
-        
-        setConsumptionTraps(knowledgeItems.length > 0 ? knowledgeItems.map((t: any) => ({
-          title: t.title,
-          description: t.content,
-          icon: t.icon || 'Gift',
-          examples: ['常见消费陷阱表现'],
-        })) : defaultConsumptionTraps);
-        
-        setRationalConsumptionTips(methodItems.length > 0 ? methodItems.map((m: any) => ({
-          id: m.id,
-          title: m.title,
-          content: m.content,
-          icon: m.icon || 'Wallet',
-        })) : defaultRationalConsumptionTips);
-        
-        setScreenFreeActivities(defaultScreenFreeActivities);
+        if (topics && topics.length > 0) {
+          const knowledgeTopics = topics.filter((t: any) => t.type === 'knowledge');
+          if (knowledgeTopics.length > 0) {
+            setBehaviors(knowledgeTopics.map((t: any, i: number) => ({
+              id: t.id,
+              title: t.title,
+              icon: t.icon || 'AlertTriangle',
+              color: t.color || 'orange',
+              description: t.content,
+              examples: [],
+            })));
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch consumption data:', error);
-        setConsumptionTraps(defaultConsumptionTraps);
-        setRationalConsumptionTips(defaultRationalConsumptionTips);
-        setScreenFreeActivities(defaultScreenFreeActivities);
+        console.error('Failed to fetch topics:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="animate-pulse space-y-6">
+            <div className="h-40 bg-slate-200 rounded-xl"></div>
+            <div className="h-64 bg-slate-200 rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50">
       <PageBanner
-        title="理性消费 健康成长"
-        subtitle="识别消费陷阱，树立正确消费观"
-        gradient="from-amber-500 via-orange-500 to-red-500"
-        icon={<ShoppingBag className="w-10 h-10 text-white" />}
+        title="不良行为矫治与权益保护"
+        subtitle="认识不良行为危害 学会自我保护"
+        bgColor="from-orange-500 via-amber-500 to-yellow-500"
       />
 
-      {/* Traps Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <span className="inline-block text-warm-600 font-medium mb-3">陷阱识别</span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
-              警惕网络消费陷阱
-            </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              网络世界藏着很多消费陷阱，让我们一起识破它们
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {consumptionTraps.map((trap, index) => (
-              <div
-                key={trap.title}
-                className="bg-white rounded-2xl p-8 border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all group"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-warm-500 to-orange-600 text-white flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  {iconMap[trap.icon]}
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3">{trap.title}</h3>
-                <p className="text-slate-600 mb-5">{trap.description}</p>
-                <div className="bg-warm-50 rounded-xl p-4">
-                  <p className="text-sm font-medium text-warm-600 mb-2">⚠️ 常见表现：</p>
-                  <ul className="space-y-1">
-                    {trap.examples.map((example, i) => (
-                      <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                        <ChevronRight className="w-4 h-4 text-warm-500 mt-0.5 flex-shrink-0" />
-                        {example}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tips Section */}
-      <section className="py-20 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <span className="inline-block text-growth-600 font-medium mb-3">理性消费</span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
-              做明智的消费者
-            </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              学会管理自己的零花钱，培养健康的消费习惯
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {rationalConsumptionTips.map((tip, index) => (
-              <div
-                key={tip.id}
-                className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-xl transition-shadow"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex items-start gap-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-growth-500 to-teal-600 text-white flex items-center justify-center flex-shrink-0">
-                    {iconMap[tip.icon]}
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-5xl mx-auto space-y-12">
+          {/* 不良行为类型 */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-slate-800">常见不良行为</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {behaviors.map((behavior, index) => (
+                <div
+                  key={behavior.id}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${
+                      behavior.color === 'red' ? 'bg-red-500' : 'bg-orange-500'
+                    }`}>
+                      {iconMap[behavior.icon] || <AlertTriangle className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-800 mb-1">{behavior.title}</h3>
+                      <p className="text-sm text-slate-500">{behavior.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-3">{tip.title}</h3>
-                    <p className="text-slate-600 leading-relaxed whitespace-pre-line">
-                      {tip.content}
-                    </p>
+                  {behavior.examples && behavior.examples.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {behavior.examples.map((ex: string, i: number) => (
+                        <span
+                          key={i}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            behavior.color === 'red'
+                              ? 'bg-red-50 text-red-600'
+                              : 'bg-orange-50 text-orange-600'
+                          }`}
+                        >
+                          <Tag className="w-3 h-3 inline mr-1" />
+                          {ex}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 矫治方法 */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-slate-800">不良行为矫治方法</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {defaultCorrectionMethods.map((method) => (
+                <div
+                  key={method.id}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-white flex-shrink-0">
+                      {iconMap[method.icon] || <Lightbulb className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-800 mb-2">{method.title}</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">{method.content}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Screen Free Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <span className="inline-block text-primary-600 font-medium mb-3">生活方式</span>
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
-              发现无屏幕的乐趣
-            </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              放下手机和电脑，现实世界有更多精彩等着你
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {screenFreeActivities.map((activity, index) => (
-              <div
-                key={activity.title}
-                className="bg-gradient-to-br from-primary-50 to-white rounded-2xl p-6 border border-primary-100 hover:shadow-lg hover:-translate-y-1 transition-all group"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-blue-600 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  {iconMap[activity.icon]}
-                </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-2">{activity.title}</h3>
-                <p className="text-slate-600 text-sm mb-4">{activity.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {activity.ideas.map((idea) => (
-                    <span
-                      key={idea}
-                      className="px-3 py-1 bg-white text-primary-600 text-sm rounded-full border border-primary-100"
-                    >
-                      {idea}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pledge Section */}
-      <section className="py-20 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center text-white">
-            <div className="w-20 h-20 mx-auto mb-8 bg-white/20 rounded-3xl flex items-center justify-center">
-              <Coins className="w-10 h-10" />
+              ))}
             </div>
-            <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              我的理性消费公约
-            </h2>
-            <div className="text-lg text-white/90 space-y-4 mb-10 text-left bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-              <p>✊ 消费前三思，分清"需要"和"想要"</p>
-              <p>✊ 制定零花钱计划，养成记账好习惯</p>
-              <p>✊ 不攀比、不盲从，理性看待网红产品</p>
-              <p>✊ 保护好支付密码，充值打赏告诉家长</p>
-              <p>✊ 远离抽奖赌博，不抱侥幸心理</p>
-              <p>✊ 多参与线下活动，发现生活更多美好</p>
+          </section>
+
+          {/* 未成年人合法权益 */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-slate-800">未成年人合法权益</h2>
             </div>
-            <p className="text-xl font-medium">
-              做金钱的小主人，不为消费所奴役 💪
-            </p>
-          </div>
+            <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {defaultRights.map((right) => (
+                  <div key={right.id} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+                      {iconMap[right.icon] || <ShieldCheck className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 mb-1">{right.title}</h4>
+                      <p className="text-sm text-slate-600 leading-relaxed">{right.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* 自我保护指南 */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-slate-800">自我保护指南</h2>
+            </div>
+            <div className="space-y-3">
+              {defaultProtectionTips.map((tip) => (
+                <div
+                  key={tip.id}
+                  className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"
+                >
+                  <button
+                    onClick={() => setExpandedTip(expandedTip === tip.title ? null : tip.title)}
+                    className="w-full p-5 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                  >
+                    <h3 className="font-bold text-slate-800 text-left">{tip.title}</h3>
+                    {expandedTip === tip.title ? (
+                      <ChevronUp className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                    )}
+                  </button>
+                  {expandedTip === tip.title && (
+                    <div className="px-5 pb-5">
+                      <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+                        {tip.steps.map((step, index) => (
+                          <div key={index} className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                              {index + 1}
+                            </div>
+                            <p className="text-sm text-slate-700">{step}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 求助渠道 */}
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-rose-500 to-red-500 rounded-full"></div>
+              <h2 className="text-2xl font-bold text-slate-800">求助渠道</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {defaultHelpChannels.map((channel, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 text-center hover:shadow-md transition-shadow"
+                >
+                  <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-rose-500 to-red-500 rounded-2xl flex items-center justify-center text-white">
+                    {iconMap[channel.icon] || <Phone className="w-6 h-6" />}
+                  </div>
+                  <h4 className="font-bold text-slate-800 mb-1">{channel.title}</h4>
+                  <p className="text-xs text-slate-500">{channel.description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

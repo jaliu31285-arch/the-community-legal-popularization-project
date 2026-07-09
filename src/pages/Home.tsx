@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSiteStyle } from '@/hooks/useSiteStyle';
 import HomeStyleB from './home/HomeStyleB';
 import HomeStyleC from './home/HomeStyleC';
+import PageBlockRenderer from '@/components/blocks/PageBlockRenderer';
 import {
   ChevronRight,
   ChevronLeft,
@@ -69,24 +70,27 @@ export default function Home() {
   const [announcements, setAnnouncements] = useState<any[]>(defaultAnnouncements);
   const [quickLinks, setQuickLinks] = useState<any[]>(defaultQuickLinks);
   const [statsData, setStatsData] = useState<any[]>([]);
+  const [pageBlocks, setPageBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStyle();
     const fetchData = async () => {
       try {
-        const [settings, news, anns, links, stats] = await Promise.all([
+        const [settings, news, anns, links, stats, blocks] = await Promise.all([
           api.getSiteSettings(),
           api.getNews(),
           api.getAnnouncements(6),
           api.getQuickLinks(),
           api.getHomeStats(),
+          api.getPageBlocks('home'),
         ]);
         setSiteSettings(settings);
         setNewsData(news.slice(0, 6) || defaultNews);
         setAnnouncements(anns.length > 0 ? anns : defaultAnnouncements);
         setQuickLinks(links.length > 0 ? links : defaultQuickLinks);
         setStatsData(stats || []);
+        setPageBlocks(blocks || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
@@ -127,6 +131,17 @@ export default function Home() {
   // 根据风格渲染不同首页
   if (style === 'style-b') return <HomeStyleB />;
   if (style === 'style-c') return <HomeStyleC />;
+
+  // 如果有动态区块数据，优先使用动态区块渲染
+  if (pageBlocks.length > 0) {
+    return (
+      <div className="min-h-screen bg-white">
+        {pageBlocks.map((block) => (
+          <PageBlockRenderer key={block.id} block={block} />
+        ))}
+      </div>
+    );
+  }
 
   // 默认 Style A - 公益组织风
 

@@ -34,11 +34,13 @@ export default function Footer() {
 
   const renderSectionContent = (section: any) => {
     const type = section.section_type;
-    let content: any = {};
-    try {
-      content = section.content ? JSON.parse(section.content) : {};
-    } catch (e) {
-      content = {};
+    let content: any = section.content || {};
+    if (typeof content === 'string') {
+      try {
+        content = content ? JSON.parse(content) : {};
+      } catch (e) {
+        content = {};
+      }
     }
 
     if (type === 'links') {

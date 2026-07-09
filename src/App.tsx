@@ -11,6 +11,10 @@ import Achievements from "@/pages/Achievements";
 import About from "@/pages/About";
 import NewsDetail from "@/pages/NewsDetail";
 import AnnouncementDetail from "@/pages/AnnouncementDetail";
+import ActivityReview from "@/pages/ActivityReview";
+import StudentWorks from "@/pages/StudentWorks";
+import PromiseWall from "@/pages/PromiseWall";
+import NotFound from "@/pages/NotFound";
 import AdminLogin from "@/pages/admin/Login";
 import AdminLayout from "@/pages/admin/Layout";
 import Dashboard from "@/pages/admin/Dashboard";
@@ -33,6 +37,11 @@ import FooterSectionAdmin from "@/pages/admin/FooterSectionAdmin";
 import SidebarWidgetAdmin from "@/pages/admin/SidebarWidgetAdmin";
 import PageSectionAdmin from "@/pages/admin/PageSectionAdmin";
 import ConfigMap from "@/pages/admin/ConfigMap";
+import ChangeLogAdmin from "@/pages/admin/ChangeLogAdmin";
+import PageBlockAdmin from "@/pages/admin/PageBlockAdmin";
+import ActivityReviewAdmin from "@/pages/admin/ActivityReviewAdmin";
+import StudentWorksAdmin from "@/pages/admin/StudentWorksAdmin";
+import PromiseWallAdmin from "@/pages/admin/PromiseWallAdmin";
 
 export default function App() {
   return (
@@ -53,9 +62,13 @@ export default function App() {
                   <Route path="/fraud" element={<Fraud />} />
                   <Route path="/consumption" element={<Consumption />} />
                   <Route path="/activities" element={<Activities />} />
+                  <Route path="/activity-review" element={<ActivityReview />} />
+                  <Route path="/student-works" element={<StudentWorks />} />
+                  <Route path="/promise-wall" element={<PromiseWall />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/achievements" element={<Achievements />} />
                   <Route path="/about" element={<About />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
               <Footer />
@@ -86,6 +99,11 @@ export default function App() {
           <Route path="quick-links" element={<QuickLinkAdmin />} />
           <Route path="sidebar-widgets" element={<SidebarWidgetAdmin />} />
           <Route path="upload" element={<UploadAdmin />} />
+          <Route path="change-logs" element={<ChangeLogAdmin />} />
+          <Route path="page-blocks" element={<PageBlockAdmin />} />
+          <Route path="activity-review" element={<ActivityReviewAdmin />} />
+          <Route path="student-works" element={<StudentWorksAdmin />} />
+          <Route path="promise-wall" element={<PromiseWallAdmin />} />
         </Route>
       </Routes>
     </Router>

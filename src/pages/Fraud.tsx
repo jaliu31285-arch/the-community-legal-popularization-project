@@ -106,8 +106,8 @@ export default function Fraud() {
   return (
     <div>
       <PageBanner
-        title="谨防网络诈骗"
-        subtitle="练就火眼金睛，守护青春钱袋子"
+        title="网络诈骗防范"
+        subtitle="认清诈骗套路，提高防范意识，守护财产安全"
         gradient="from-emerald-600 via-teal-500 to-cyan-500"
         icon={<AlertTriangle className="w-10 h-10 text-white" />}
       />

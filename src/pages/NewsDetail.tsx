@@ -153,29 +153,76 @@ export default function NewsDetail() {
               )}
 
               {effectiveType === 'file' && news.file_url && (
-                <div className="text-center py-12">
-                  <div className="inline-flex flex-col items-center gap-4 p-8 bg-slate-50 rounded-2xl">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                      <FileText className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                        文件下载
-                      </h3>
-                      <p className="text-slate-500 mb-4 text-sm">
-                        点击下方按钮下载文件查看完整内容
-                      </p>
+                <div className="space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">附件文档</p>
+                        <p className="text-xs text-slate-500">支持在线预览，也可下载查看</p>
+                      </div>
                     </div>
                     <a
                       href={news.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
                     >
-                      <Download className="w-5 h-5" />
+                      <Download className="w-4 h-4" />
                       下载文件
                     </a>
                   </div>
+                  {news.file_url.toLowerCase().endsWith('.pdf') ? (
+                    <div className="border border-slate-200 rounded-xl overflow-hidden">
+                      <iframe
+                        src={news.file_url}
+                        className="w-full"
+                        style={{ height: '80vh', minHeight: '600px' }}
+                        title="PDF预览"
+                      />
+                    </div>
+                  ) : news.file_url.toLowerCase().endsWith('.doc') || news.file_url.toLowerCase().endsWith('.docx') ? (
+                    <div className="space-y-4">
+                      <div className="border border-slate-200 rounded-xl overflow-hidden">
+                        <iframe
+                          src={`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(window.location.origin + news.file_url)}`}
+                          className="w-full"
+                          style={{ height: '80vh', minHeight: '600px' }}
+                          title="Word文档预览"
+                        />
+                      </div>
+                      <p className="text-center text-sm text-slate-500">
+                        如预览加载失败，请点击上方"下载文件"按钮查看
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="inline-flex flex-col items-center gap-4 p-8 bg-slate-50 rounded-2xl">
+                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                            文件下载
+                          </h3>
+                          <p className="text-slate-500 mb-4 text-sm">
+                            点击下方按钮下载文件查看完整内容
+                          </p>
+                        </div>
+                        <a
+                          href={news.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium"
+                        >
+                          <Download className="w-5 h-5" />
+                          下载文件
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

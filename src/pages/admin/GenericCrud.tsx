@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, Eye, EyeOff, ChevronUp, ChevronDown, Loader2, Upload, Info, MapPin, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Eye, EyeOff, ChevronUp, ChevronDown, Loader2, Upload, Info, MapPin, ExternalLink, X } from 'lucide-react';
 import { uploadFile } from '@/services/api';
 
 export interface CrudField {
@@ -366,11 +366,21 @@ export default function GenericCrud({
                   {field.type === 'image' && (
                     <div className="space-y-3">
                       {formData[field.key] && (
-                        <img
-                          src={formData[field.key]}
-                          alt="预览"
-                          className="w-32 h-32 rounded-xl object-cover border border-slate-200"
-                        />
+                        <div className="relative inline-block">
+                          <img
+                            src={formData[field.key]}
+                            alt="预览"
+                            className="w-32 h-32 rounded-xl object-cover border border-slate-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, [field.key]: '' })}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                            title="清除图片"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                       <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                         <Upload className="w-5 h-5 text-slate-400" />
@@ -401,8 +411,16 @@ export default function GenericCrud({
                   {field.type === 'file' && (
                     <div className="space-y-3">
                       {formData[field.key] && (
-                        <div className="p-3 bg-slate-50 rounded-xl text-sm text-slate-600 truncate">
-                          {formData[field.key]}
+                        <div className="relative p-3 pr-10 bg-slate-50 rounded-xl text-sm text-slate-600">
+                          <div className="truncate">{formData[field.key]}</div>
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, [field.key]: '' })}
+                            className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                            title="清除文件"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
                       )}
                       <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">

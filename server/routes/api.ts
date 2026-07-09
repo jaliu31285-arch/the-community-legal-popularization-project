@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import db from '../models/db';
+import db, { logChange, getRecentChanges } from '../models/db';
 import authMiddleware, { AuthRequest } from '../middleware/auth';
 
 const router = Router();
@@ -46,7 +46,7 @@ router.post('/banners', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 router.put('/banners/:id', authMiddleware, (req: AuthRequest, res: Response) => {
-  const { title, subtitle, description, image_url, gradient, sort_order, is_active } = req.body;
+  const { title, subtitle, description, image_url, gradient, sort_order, is_active, link_url } = req.body;
   const existing = db.prepare('SELECT * FROM banners WHERE id = ?').get(req.params.id);
   if (!existing) {
     return res.status(404).json({ message: '轮播图不存在' });
@@ -60,6 +60,7 @@ router.put('/banners/:id', authMiddleware, (req: AuthRequest, res: Response) => 
       gradient = COALESCE(?, gradient),
       sort_order = COALESCE(?, sort_order),
       is_active = COALESCE(?, is_active),
+      link_url = COALESCE(?, link_url),
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `).run(
@@ -70,17 +71,24 @@ router.put('/banners/:id', authMiddleware, (req: AuthRequest, res: Response) => 
     gradient ?? null,
     sort_order ?? null,
     is_active ?? null,
+    link_url ?? null,
     req.params.id
   );
   const banner = db.prepare('SELECT * FROM banners WHERE id = ?').get(req.params.id);
+  logChange('banners', Number(req.params.id), 'update', existing, banner, req.admin?.id || null);
   res.json(banner);
 });
 
 router.delete('/banners/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  const existing = db.prepare('SELECT * FROM banners WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: '轮播图不存在' });
+  }
   const result = db.prepare('DELETE FROM banners WHERE id = ?').run(req.params.id);
   if (result.changes === 0) {
     return res.status(404).json({ message: '轮播图不存在' });
   }
+  logChange('banners', Number(req.params.id), 'delete', existing, null, req.admin?.id || null);
   res.json({ message: '删除成功' });
 });
 
@@ -170,14 +178,20 @@ router.put('/news/:id', authMiddleware, (req: AuthRequest, res: Response) => {
     req.params.id
   );
   const newsItem = db.prepare('SELECT * FROM news WHERE id = ?').get(req.params.id);
+  logChange('news', Number(req.params.id), 'update', existing, newsItem, req.admin?.id || null);
   res.json(newsItem);
 });
 
 router.delete('/news/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  const existing = db.prepare('SELECT * FROM news WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: '新闻不存在' });
+  }
   const result = db.prepare('DELETE FROM news WHERE id = ?').run(req.params.id);
   if (result.changes === 0) {
     return res.status(404).json({ message: '新闻不存在' });
   }
+  logChange('news', Number(req.params.id), 'delete', existing, null, req.admin?.id || null);
   res.json({ message: '删除成功' });
 });
 
@@ -1098,14 +1112,20 @@ router.put('/announcements/:id', authMiddleware, (req: AuthRequest, res: Respons
     req.params.id
   );
   const announcement = db.prepare('SELECT * FROM announcements WHERE id = ?').get(req.params.id);
+  logChange('announcements', Number(req.params.id), 'update', existing, announcement, req.admin?.id || null);
   res.json(announcement);
 });
 
 router.delete('/announcements/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  const existing = db.prepare('SELECT * FROM announcements WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: '公告不存在' });
+  }
   const result = db.prepare('DELETE FROM announcements WHERE id = ?').run(req.params.id);
   if (result.changes === 0) {
     return res.status(404).json({ message: '公告不存在' });
   }
+  logChange('announcements', Number(req.params.id), 'delete', existing, null, req.admin?.id || null);
   res.json({ message: '删除成功' });
 });
 
@@ -1204,11 +1224,8 @@ router.get('/footer-sections', (req: Request, res: Response) => {
 });
 
 router.get('/footer-sections/all', authMiddleware, (req: AuthRequest, res: Response) => {
-  const sections = db.prepare('SELECT * FROM footer_sections ORDER BY sort_order ASC, id ASC').all() as Array<{ content?: string | null; section_type?: string; [key: string]: unknown }>;
-  res.json(sections.map((s) => ({
-    ...s,
-    content: s.content ? JSON.parse(s.content) : null,
-  })));
+  const sections = db.prepare('SELECT * FROM footer_sections ORDER BY sort_order ASC, id ASC').all();
+  res.json(sections);
 });
 
 router.get('/footer-sections/:id', (req: Request, res: Response) => {
@@ -1459,11 +1476,593 @@ router.put('/page-sections/:id', authMiddleware, (req: AuthRequest, res: Respons
 });
 
 router.delete('/page-sections/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  const existing = db.prepare('SELECT * FROM page_sections WHERE id = ?').get(req.params.id);
   const result = db.prepare('DELETE FROM page_sections WHERE id = ?').run(req.params.id);
   if (result.changes === 0) {
     return res.status(404).json({ message: '页面区块不存在' });
   }
+  logChange('page_sections', Number(req.params.id), 'delete', existing, null, req.admin?.id || null);
   res.json({ message: '删除成功' });
+});
+
+// ============ 页面动态区块管理 ============
+router.get('/page-blocks', (req: Request, res: Response) => {
+  const { all, page } = req.query;
+  let sql = 'SELECT * FROM page_blocks WHERE 1=1';
+  const params: unknown[] = [];
+  if (all !== 'true') {
+    sql += ' AND is_active = 1';
+  }
+  if (page) {
+    sql += ' AND page_name = ?';
+    params.push(page);
+  }
+  sql += ' ORDER BY sort_order ASC, id ASC';
+  const blocks = db.prepare(sql).all(...params) as Array<{ items?: string | null; [key: string]: unknown }>;
+  res.json(blocks.map((b) => ({
+    ...b,
+    items: b.items ? JSON.parse(b.items) : [],
+  })));
+});
+
+router.get('/page-blocks/all', authMiddleware, (req: AuthRequest, res: Response) => {
+  const blocks = db.prepare('SELECT * FROM page_blocks ORDER BY sort_order ASC, id ASC').all() as Array<{ items?: string | null; [key: string]: unknown }>;
+  res.json(blocks.map((b) => ({
+    ...b,
+    items: b.items ? JSON.parse(b.items) : [],
+  })));
+});
+
+router.get('/page-blocks/:id', (req: Request, res: Response) => {
+  const block = db.prepare('SELECT * FROM page_blocks WHERE id = ?').get(req.params.id) as { items?: string | null; [key: string]: unknown } | undefined;
+  if (!block) {
+    return res.status(404).json({ message: '区块不存在' });
+  }
+  res.json({
+    ...block,
+    items: block.items ? JSON.parse(block.items) : [],
+  });
+});
+
+router.post('/page-blocks', authMiddleware, (req: AuthRequest, res: Response) => {
+  const { page_name, block_type, title, subtitle, content, image_url, video_url, items, background_color, text_color, layout, sort_order, is_active } = req.body;
+  if (!block_type) {
+    return res.status(400).json({ message: '区块类型不能为空' });
+  }
+  const result = db.prepare(`
+    INSERT INTO page_blocks (page_name, block_type, title, subtitle, content, image_url, video_url, items, background_color, text_color, layout, sort_order, is_active)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    page_name || 'home',
+    block_type,
+    title || '',
+    subtitle || '',
+    content || '',
+    image_url || '',
+    video_url || '',
+    items ? JSON.stringify(items) : '',
+    background_color || '',
+    text_color || '',
+    layout || 'default',
+    sort_order || 0,
+    is_active ?? 1
+  );
+  const block = db.prepare('SELECT * FROM page_blocks WHERE id = ?').get(result.lastInsertRowid) as { items?: string | null; [key: string]: unknown };
+  res.status(201).json({
+    ...block,
+    items: block.items ? JSON.parse(block.items) : [],
+  });
+});
+
+router.put('/page-blocks/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  const existing = db.prepare('SELECT * FROM page_blocks WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: '区块不存在' });
+  }
+  const { page_name, block_type, title, subtitle, content, image_url, video_url, items, background_color, text_color, layout, sort_order, is_active } = req.body;
+  db.prepare(`
+    UPDATE page_blocks SET 
+      page_name = COALESCE(?, page_name),
+      block_type = COALESCE(?, block_type),
+      title = COALESCE(?, title),
+      subtitle = COALESCE(?, subtitle),
+      content = COALESCE(?, content),
+      image_url = COALESCE(?, image_url),
+      video_url = COALESCE(?, video_url),
+      items = COALESCE(?, items),
+      background_color = COALESCE(?, background_color),
+      text_color = COALESCE(?, text_color),
+      layout = COALESCE(?, layout),
+      sort_order = COALESCE(?, sort_order),
+      is_active = COALESCE(?, is_active),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).run(
+    page_name ?? null,
+    block_type ?? null,
+    title ?? null,
+    subtitle ?? null,
+    content ?? null,
+    image_url ?? null,
+    video_url ?? null,
+    items ? JSON.stringify(items) : null,
+    background_color ?? null,
+    text_color ?? null,
+    layout ?? null,
+    sort_order ?? null,
+    is_active ?? null,
+    req.params.id
+  );
+  const block = db.prepare('SELECT * FROM page_blocks WHERE id = ?').get(req.params.id) as { items?: string | null; [key: string]: unknown };
+  logChange('page_blocks', Number(req.params.id), 'update', existing, block, req.admin?.id || null);
+  res.json({
+    ...block,
+    items: block.items ? JSON.parse(block.items) : [],
+  });
+});
+
+router.delete('/page-blocks/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  const existing = db.prepare('SELECT * FROM page_blocks WHERE id = ?').get(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ message: '区块不存在' });
+  }
+  const result = db.prepare('DELETE FROM page_blocks WHERE id = ?').run(req.params.id);
+  if (result.changes === 0) {
+    return res.status(404).json({ message: '区块不存在' });
+  }
+  logChange('page_blocks', Number(req.params.id), 'delete', existing, null, req.admin?.id || null);
+  res.json({ message: '删除成功' });
+});
+
+router.post('/page-blocks/reorder', authMiddleware, (req: AuthRequest, res: Response) => {
+  const { order } = req.body;
+  if (!Array.isArray(order)) {
+    return res.status(400).json({ message: '排序数据格式错误' });
+  }
+  const stmt = db.prepare('UPDATE page_blocks SET sort_order = ? WHERE id = ?');
+  const transaction = db.transaction((items: Array<{ id: number; sort_order: number }>) => {
+    for (const item of items) {
+      stmt.run(item.sort_order, item.id);
+    }
+  });
+  transaction(order);
+  res.json({ message: '排序成功' });
+});
+
+// ============ 操作日志与撤回功能 ============
+const tableConfig: Record<string, { name: string; columns: string[] }> = {
+  banners: { name: '轮播图', columns: ['title', 'subtitle', 'description', 'image_url', 'gradient', 'link_url', 'sort_order', 'is_active'] },
+  news: { name: '新闻动态', columns: ['title', 'content', 'summary', 'category', 'date', 'image_url', 'link_url', 'content_type', 'file_url', 'sort_order', 'is_active'] },
+  announcements: { name: '公告', columns: ['title', 'content', 'date', 'image_url', 'link_url', 'content_type', 'file_url', 'is_sticky', 'sort_order', 'is_active'] },
+  activities: { name: '活动', columns: ['day', 'date', 'title', 'description', 'image_url', 'link_url', 'sort_order', 'is_active'] },
+  resources: { name: '资源', columns: ['title', 'category', 'type', 'description', 'file_url', 'image_url', 'link_url', 'sort_order', 'is_active'] },
+  team_members: { name: '团队成员', columns: ['name', 'role', 'avatar', 'description', 'sort_order', 'is_active'] },
+  achievements: { name: '项目成果', columns: ['title', 'type', 'value', 'description', 'image_url', 'link_url', 'sort_order', 'is_active'] },
+  topics: { name: '普法专题', columns: ['category', 'title', 'content', 'type', 'icon', 'color', 'sort_order', 'is_active'] },
+  nav_items: { name: '导航菜单', columns: ['label', 'path', 'parent_id', 'sort_order', 'is_active'] },
+  quick_links: { name: '快速链接', columns: ['title', 'link_url', 'icon', 'sort_order', 'is_active'] },
+  stats: { name: '统计数据', columns: ['label', 'value', 'icon', 'color', 'sort_order', 'is_active'] },
+  partners: { name: '合作单位', columns: ['name', 'type', 'description', 'logo_url', 'sort_order', 'is_active'] },
+  advisors: { name: '指导老师', columns: ['name', 'title', 'department', 'avatar', 'description', 'sort_order', 'is_active'] },
+  page_blocks: { name: '页面区块', columns: ['page_name', 'block_type', 'title', 'subtitle', 'content', 'image_url', 'video_url', 'items', 'background_color', 'text_color', 'layout', 'sort_order', 'is_active'] },
+};
+
+router.get('/change-logs', authMiddleware, (req: AuthRequest, res: Response) => {
+  const { table, limit = 50 } = req.query;
+  const logs = getRecentChanges(table as string | undefined, Number(limit));
+  const logsWithNames = logs.map((log: any) => ({
+    ...log,
+    table_label: tableConfig[log.table_name]?.name || log.table_name,
+  }));
+  res.json(logsWithNames);
+});
+
+router.post('/change-logs/:id/undo', authMiddleware, (req: AuthRequest, res: Response) => {
+  const log = db.prepare('SELECT * FROM change_logs WHERE id = ?').get(req.params.id) as any;
+  if (!log) {
+    return res.status(404).json({ message: '操作记录不存在' });
+  }
+
+  const tableName = log.table_name;
+  const recordId = log.record_id;
+  const operation = log.operation;
+  const oldData = log.old_data ? JSON.parse(log.old_data) : null;
+
+  if (!tableConfig[tableName]) {
+    return res.status(400).json({ message: '不支持撤回该类型的数据' });
+  }
+
+  try {
+    if (operation === 'delete') {
+      if (!oldData) {
+        return res.status(400).json({ message: '无法撤回：缺少原始数据' });
+      }
+      const columns = Object.keys(oldData).filter(k => k !== 'id');
+      const placeholders = columns.map(() => '?').join(', ');
+      const values = columns.map(col => oldData[col]);
+      db.prepare(`INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`).run(...values);
+      res.json({ message: '撤回成功，数据已恢复' });
+    } else if (operation === 'update') {
+      if (!oldData) {
+        return res.status(400).json({ message: '无法撤回：缺少原始数据' });
+      }
+      const columns = tableConfig[tableName].columns;
+      const setClauses = columns.map(col => `${col} = ?`).join(', ');
+      const values = columns.map(col => oldData[col] ?? null);
+      values.push(recordId);
+      db.prepare(`UPDATE ${tableName} SET ${setClauses}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(...values);
+      res.json({ message: '撤回成功，已恢复到上一版本' });
+    } else {
+      return res.status(400).json({ message: '该操作类型不支持撤回' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ message: '撤回失败：' + error.message });
+  }
+});
+
+// ==================== 活动回顾 API ====================
+
+// 获取活动回顾（前台）
+router.get('/activity-review', (req: Request, res: Response) => {
+  try {
+    const settings = db.prepare('SELECT enabled FROM activity_review_settings ORDER BY id DESC LIMIT 1').get() as any;
+    const enabled = settings ? settings.enabled === 1 : true;
+
+    if (!enabled) {
+      return res.json({ enabled: false, days: [] });
+    }
+
+    const days = db.prepare(`
+      SELECT * FROM activity_review_days 
+      WHERE is_active = 1 
+      ORDER BY sort_order ASC, id ASC
+    `).all() as any[];
+
+    const daysWithPoints = days.map(day => {
+      const points = db.prepare(`
+        SELECT * FROM activity_review_points 
+        WHERE day_id = ? AND is_active = 1 
+        ORDER BY sort_order ASC, id ASC
+      `).all(day.id) as any[];
+      return {
+        ...day,
+        time_points: points.map(p => ({
+          ...p,
+          images: p.images ? JSON.parse(p.images) : [],
+        })),
+      };
+    });
+
+    res.json({ enabled: true, days: daysWithPoints });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 获取活动回顾（后台）
+router.get('/activity-review/admin', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const settings = db.prepare('SELECT enabled FROM activity_review_settings ORDER BY id DESC LIMIT 1').get() as any;
+    const enabled = settings ? settings.enabled === 1 : true;
+
+    const days = db.prepare(`
+      SELECT * FROM activity_review_days 
+      ORDER BY sort_order ASC, id ASC
+    `).all() as any[];
+
+    const daysWithPoints = days.map(day => {
+      const points = db.prepare(`
+        SELECT * FROM activity_review_points 
+        WHERE day_id = ? 
+        ORDER BY sort_order ASC, id ASC
+      `).all(day.id) as any[];
+      return {
+        ...day,
+        time_points: points.map(p => ({
+          ...p,
+          images: p.images ? JSON.parse(p.images) : [],
+        })),
+      };
+    });
+
+    res.json({ enabled, days: daysWithPoints });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 更新活动回顾
+router.put('/activity-review', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const { enabled, days } = req.body;
+
+    if (enabled !== undefined) {
+      const settings = db.prepare('SELECT id FROM activity_review_settings ORDER BY id DESC LIMIT 1').get() as any;
+      if (settings) {
+        db.prepare('UPDATE activity_review_settings SET enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+          .run(enabled ? 1 : 0, settings.id);
+      } else {
+        db.prepare('INSERT INTO activity_review_settings (enabled) VALUES (?)')
+          .run(enabled ? 1 : 0);
+      }
+    }
+
+    if (days && Array.isArray(days)) {
+      for (const day of days) {
+        if (day.id) {
+          db.prepare(`
+            UPDATE activity_review_days 
+            SET date = ?, title = ?, description = ?, sort_order = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `).run(day.date, day.title, day.description || '', day.sort_order || 0, day.is_active ?? 1, day.id);
+        } else {
+          const result = db.prepare(`
+            INSERT INTO activity_review_days (date, title, description, sort_order, is_active)
+            VALUES (?, ?, ?, ?, ?)
+          `).run(day.date, day.title, day.description || '', day.sort_order || 0, day.is_active ?? 1);
+          day.id = result.lastInsertRowid;
+        }
+
+        if (day.time_points && Array.isArray(day.time_points)) {
+          for (const point of day.time_points) {
+            if (point.id) {
+              db.prepare(`
+                UPDATE activity_review_points 
+                SET day_id = ?, time = ?, title = ?, content = ?, images = ?, video_url = ?, sort_order = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+              `).run(
+                day.id,
+                point.time,
+                point.title,
+                point.content || '',
+                JSON.stringify(point.images || []),
+                point.video_url || null,
+                point.sort_order || 0,
+                point.is_active ?? 1,
+                point.id
+              );
+            } else {
+              db.prepare(`
+                INSERT INTO activity_review_points (day_id, time, title, content, images, video_url, sort_order, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              `).run(
+                day.id,
+                point.time,
+                point.title,
+                point.content || '',
+                JSON.stringify(point.images || []),
+                point.video_url || null,
+                point.sort_order || 0,
+                point.is_active ?? 1
+              );
+            }
+          }
+        }
+      }
+    }
+
+    logChange('activity_review_days', 0, 'update', null, req.body, req.admin?.id || null);
+    res.json({ message: '保存成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ==================== 学生作品 API ====================
+
+// 获取学生作品（前台）
+router.get('/student-works', (req: Request, res: Response) => {
+  try {
+    const settings = db.prepare('SELECT enabled FROM student_works_settings ORDER BY id DESC LIMIT 1').get() as any;
+    const enabled = settings ? settings.enabled === 1 : true;
+
+    if (!enabled) {
+      return res.json({ enabled: false, works: [] });
+    }
+
+    const works = db.prepare(`
+      SELECT * FROM student_works 
+      WHERE is_active = 1 
+      ORDER BY sort_order ASC, id DESC
+    `).all();
+
+    res.json({ enabled: true, works });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 获取学生作品（后台）
+router.get('/student-works/admin', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const settings = db.prepare('SELECT enabled FROM student_works_settings ORDER BY id DESC LIMIT 1').get() as any;
+    const enabled = settings ? settings.enabled === 1 : true;
+
+    const works = db.prepare(`
+      SELECT * FROM student_works 
+      ORDER BY sort_order ASC, id DESC
+    `).all();
+
+    res.json({ enabled, works });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 新增学生作品
+router.post('/student-works', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const { title, category, author, description, image_url, content_text, sort_order } = req.body;
+    const result = db.prepare(`
+      INSERT INTO student_works (title, category, author, description, image_url, content_text, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      title,
+      category || '其他',
+      author || '',
+      description || '',
+      image_url || '',
+      content_text || '',
+      sort_order || 0
+    );
+
+    logChange('student_works', Number(result.lastInsertRowid), 'create', null, req.body, req.admin?.id || null);
+    res.json({ id: result.lastInsertRowid, message: '添加成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 更新学生作品
+router.put('/student-works/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const oldData = db.prepare('SELECT * FROM student_works WHERE id = ?').get(req.params.id);
+    const { title, category, author, description, image_url, content_text, sort_order, is_active } = req.body;
+
+    db.prepare(`
+      UPDATE student_works 
+      SET title = ?, category = ?, author = ?, description = ?, image_url = ?, content_text = ?, sort_order = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      title,
+      category || '其他',
+      author || '',
+      description || '',
+      image_url || '',
+      content_text || '',
+      sort_order || 0,
+      is_active ?? 1,
+      req.params.id
+    );
+
+    logChange('student_works', Number(req.params.id), 'update', oldData, req.body, req.admin?.id || null);
+    res.json({ message: '更新成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 删除学生作品
+router.delete('/student-works/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const oldData = db.prepare('SELECT * FROM student_works WHERE id = ?').get(req.params.id);
+    db.prepare('DELETE FROM student_works WHERE id = ?').run(req.params.id);
+    logChange('student_works', Number(req.params.id), 'delete', oldData, null, req.admin?.id || null);
+    res.json({ message: '删除成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 更新学生作品启用状态
+router.put('/student-works/enabled', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const { enabled } = req.body;
+    const settings = db.prepare('SELECT id FROM student_works_settings ORDER BY id DESC LIMIT 1').get() as any;
+    if (settings) {
+      db.prepare('UPDATE student_works_settings SET enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(enabled ? 1 : 0, settings.id);
+    } else {
+      db.prepare('INSERT INTO student_works_settings (enabled) VALUES (?)')
+        .run(enabled ? 1 : 0);
+    }
+    logChange('student_works_settings', 0, 'update', null, req.body, req.admin?.id || null);
+    res.json({ message: '保存成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ==================== 承诺墙 API ====================
+
+// 获取承诺墙（前台）
+router.get('/promise-wall', (req: Request, res: Response) => {
+  try {
+    const settings = db.prepare('SELECT enabled FROM promise_wall_settings ORDER BY id DESC LIMIT 1').get() as any;
+    const enabled = settings ? settings.enabled === 1 : true;
+
+    if (!enabled) {
+      return res.json({ enabled: false, signatures: [] });
+    }
+
+    const signatures = db.prepare(`
+      SELECT * FROM promise_wall_signatures 
+      WHERE is_active = 1 
+      ORDER BY sort_order ASC, id DESC
+    `).all();
+
+    res.json({ enabled: true, signatures });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 获取承诺墙（后台）
+router.get('/promise-wall/admin', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const settings = db.prepare('SELECT enabled FROM promise_wall_settings ORDER BY id DESC LIMIT 1').get() as any;
+    const enabled = settings ? settings.enabled === 1 : true;
+
+    const signatures = db.prepare(`
+      SELECT * FROM promise_wall_signatures 
+      ORDER BY sort_order ASC, id DESC
+    `).all();
+
+    res.json({ enabled, signatures });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 提交签名（前台）
+router.post('/promise-wall/signatures', (req: Request, res: Response) => {
+  try {
+    const { name, signature_type, signature_image, message } = req.body;
+    const result = db.prepare(`
+      INSERT INTO promise_wall_signatures (name, signature_type, signature_image, message)
+      VALUES (?, ?, ?, ?)
+    `).run(
+      name,
+      signature_type || 'text',
+      signature_image || null,
+      message || ''
+    );
+
+    res.json({ id: result.lastInsertRowid, message: '签名成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 删除签名
+router.delete('/promise-wall/signatures/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const oldData = db.prepare('SELECT * FROM promise_wall_signatures WHERE id = ?').get(req.params.id);
+    db.prepare('DELETE FROM promise_wall_signatures WHERE id = ?').run(req.params.id);
+    logChange('promise_wall_signatures', Number(req.params.id), 'delete', oldData, null, req.admin?.id || null);
+    res.json({ message: '删除成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// 更新承诺墙启用状态
+router.put('/promise-wall/enabled', authMiddleware, (req: AuthRequest, res: Response) => {
+  try {
+    const { enabled } = req.body;
+    const settings = db.prepare('SELECT id FROM promise_wall_settings ORDER BY id DESC LIMIT 1').get() as any;
+    if (settings) {
+      db.prepare('UPDATE promise_wall_settings SET enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(enabled ? 1 : 0, settings.id);
+    } else {
+      db.prepare('INSERT INTO promise_wall_settings (enabled) VALUES (?)')
+        .run(enabled ? 1 : 0);
+    }
+    logChange('promise_wall_settings', 0, 'update', null, req.body, req.admin?.id || null);
+    res.json({ message: '保存成功' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 export default router;

@@ -526,4 +526,114 @@ export const api = {
       method: 'DELETE',
       requireAuth: true,
     }),
+
+  // 页面动态区块
+  getPageBlocks: (page?: string) =>
+    request(`/page-blocks${page ? `?page=${page}` : ''}`),
+  
+  getAllPageBlocks: () =>
+    request('/page-blocks/all', { requireAuth: true }),
+  
+  getPageBlock: (id: number) =>
+    request(`/page-blocks/${id}`),
+  
+  createPageBlock: (data: any) =>
+    request('/page-blocks', {
+      method: 'POST',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  updatePageBlock: (id: number, data: any) =>
+    request(`/page-blocks/${id}`, {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  
+  deletePageBlock: (id: number) =>
+    request(`/page-blocks/${id}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    }),
+  
+  reorderPageBlocks: (order: Array<{ id: number; sort_order: number }>) =>
+    request('/page-blocks/reorder', {
+      method: 'POST',
+      requireAuth: true,
+      body: JSON.stringify({ order }),
+    }),
+
+  // 活动回顾
+  getActivityReview: () =>
+    request('/activity-review'),
+  getActivityReviewAdmin: () =>
+    request('/activity-review/admin', { requireAuth: true }),
+  updateActivityReview: (data: any) =>
+    request('/activity-review', {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+
+  // 学生作品
+  getStudentWorks: () =>
+    request('/student-works'),
+  getStudentWorksAdmin: () =>
+    request('/student-works/admin', { requireAuth: true }),
+  createStudentWork: (data: any) =>
+    request('/student-works', {
+      method: 'POST',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  updateStudentWork: (id: number, data: any) =>
+    request(`/student-works/${id}`, {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify(data),
+    }),
+  deleteStudentWork: (id: number) =>
+    request(`/student-works/${id}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    }),
+  updateStudentWorksEnabled: (enabled: boolean) =>
+    request('/student-works/enabled', {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify({ enabled }),
+    }),
+
+  // 承诺墙
+  getPromiseWall: () =>
+    request('/promise-wall'),
+  getPromiseWallAdmin: () =>
+    request('/promise-wall/admin', { requireAuth: true }),
+  createSignature: (data: any) =>
+    request('/promise-wall/signatures', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteSignature: (id: number) =>
+    request(`/promise-wall/signatures/${id}`, {
+      method: 'DELETE',
+      requireAuth: true,
+    }),
+  updatePromiseWallEnabled: (enabled: boolean) =>
+    request('/promise-wall/enabled', {
+      method: 'PUT',
+      requireAuth: true,
+      body: JSON.stringify({ enabled }),
+    }),
+
+  // 操作日志与撤回
+  getChangeLogs: (table?: string, limit?: number) =>
+    request(`/change-logs${table ? `?table=${table}` : ''}${limit ? `${table ? '&' : '?'}limit=${limit}` : ''}`, { requireAuth: true }),
+  
+  undoChange: (logId: number) =>
+    request(`/change-logs/${logId}/undo`, {
+      method: 'POST',
+      requireAuth: true,
+    }),
 };
